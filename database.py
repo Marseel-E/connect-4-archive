@@ -18,11 +18,9 @@ default = {
     "user": {
         "coins": 0,
         "playing": False,
-        "stats": {
-            "wins": 0,
-            "loses": 0,
-            "draws": 0
-        }
+        "wins": 0,
+        "loses": 0,
+        "draws": 0
     }
 }
 
@@ -30,7 +28,7 @@ default = {
 class Fetch:
 
     async def game_ids():
-        data = db.child("games").get()
+        data = db.child("connect-4").child("games").get()
         dataList = []
         dataVal = data.val()
         if dataVal is None:
@@ -43,7 +41,7 @@ class Fetch:
 class Get:
 
     async def game(gameId): 
-        data = db.child("games").child(gameId).get()
+        data = db.child("connect-4").child("games").child(gameId).get()
         dataVal = data.val()
         dataDict = {}
         if dataVal is None:
@@ -53,11 +51,11 @@ class Get:
         return dataDict    
 
     async def user(userId): 
-        data = db.child("users").child(userId).get()
+        data = db.child("connect-4").child("users").child(userId).get()
         dataVal = data.val()
         dataDict = {}
         if dataVal is None:
-            db.child("users").update({userId: default['user']})
+            db.child("connect-4").child("users").update({userId: default['user']})
             return default['user']
         for key, value in dataVal.items():
             dataDict[key] = value
@@ -79,17 +77,17 @@ class Update:
         game = await Get.game(gameId)
         if not (game): return False
         if (overwrite):
-            db.child("games").child(gameId).update({key: value})
+            db.child("connect-4").child("games").child(gameId).update({key: value})
         else:
-            db.child("games").child(gameId).update({key: game[key] + value})
+            db.child("connect-4").child("games").child(gameId).update({key: game[key] + value})
 
     async def user(userId, key, value, overwrite : typing.Optional[bool] = False):
         user = await Get.user(userId)
         if not (user): return False
         if (overwrite):
-            db.child("users").child(userId).update({key: value})
+            db.child("connect-4").child("users").child(userId).update({key: value})
         else:
-            db.child("users").child(userId).update({key: user[key] + value})
+            db.child("connect-4").child("users").child(userId).update({key: user[key] + value})
 
 
 class Create:
@@ -99,7 +97,7 @@ class Create:
         gameIds = await Fetch.game_ids()
         while gameId in gameIds:
             gameId = await Generate.game_id()
-        db.child("games").child(gameId).update({"board": [['0']*7]*6})
+        db.child("connect-4").child("games").child(gameId).update({"board": [['0']*7]*6})
         await Update.game(gameId, "players", [playerOneId, playerTwoId], True)
         await Update.game(gameId, "turn", playerOneId, True)
         await Update.game(gameId, "status", "on-going", True)
@@ -111,6 +109,4 @@ class Create:
 class Delete:
 
     async def game(gameId):
-        game = await Get.game(gameId)
-        if not (game): return False
-        db.child("games").child(game['id']).delete()
+        db.child("connect-4").child("games").child(gameId).remove()

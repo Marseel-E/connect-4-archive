@@ -5,7 +5,7 @@ import database as db
 
 
 intents = discord.Intents.all()
-client = commands.Bot(command_prefix="-", intents=intents)
+client = commands.Bot(command_prefix="!", intents=intents)
 
 
 @client.event
@@ -170,7 +170,12 @@ async def play(ctx, member : discord.Member):
             embed.add_field(name="Player 2", value=f"{member} *`(Draw!)`*", inline=False)
             embed.set_footer(text=f"ID: {game['id']}")
             await ctx.send(embed=embed)
-            await db.Update.game(game['id'], "status", "finished", True); print("Draw check"); break
+            await db.Update.game(game['id'], "status", "finished", True)
+            await db.Update.user(ctx.author.id, "draws", 1)
+            await db.Update.user(member.id, "draws", 1)
+            await ctx.send(f"Draw!")
+
+            print("Draw check"); break
 
         #- Win check
         if not await winCheck(game['id']):
@@ -184,7 +189,16 @@ async def play(ctx, member : discord.Member):
                 embed.add_field(name="Player 2", value=f"{member} *`(Winner!)`*", inline=False)
             embed.set_footer(text=f"ID: {game['id']}")
             await ctx.send(embed=embed)
-            await db.Update.game(game['id'], "status", "finished", True); print("Win check"); break
+            await db.Update.game(game['id'], "status", "finished", True)
+            await db.Update.user(game['turn'], "wins", 1)
+            loser = 1
+            if game['players'].index(game['turn']) == 1: 
+                loser == 0
+                await ctx.send(f"{ctx.author} won!")
+            await db.Update.user(loser, "loses", 1)
+            await ctx.send(f"{member} won!")
+            
+            print("Win check"); break
         
         print("Game checks")
 
@@ -200,13 +214,6 @@ async def play(ctx, member : discord.Member):
     # Finished!
     await db.Update.user(ctx.author.id, "playing", False, True)
     await db.Update.user(member.id, "playing", False, True)
-    winner = ctx.author; loser = member
-    if game['turn'] == member.id:
-        winner = member
-        loser = ctx.author
-    # await db.Update.user(winner.id, "stats", {"wins": 1}, False)
-    # await db.Update.user(loser.id, "stats", {"loses": 1}, False)
-    await ctx.send(f"{winner} won!")
 
     # Delete game
     await db.Delete.game(game['id'])
