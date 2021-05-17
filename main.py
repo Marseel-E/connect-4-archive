@@ -1,7 +1,10 @@
-import discord, sys, traceback, pyrebase, typing, asyncio
+import discord, sys, traceback, pyrebase, typing, asyncio, os
 from discord.ext import commands
 from io import StringIO
 import database as db
+from dotenv import load_dotenv
+
+load_dotenv('.env')
 
 prefix = "-"
 
@@ -17,7 +20,7 @@ async def on_ready():
 
 @client.command()
 async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
-    if ctx.author.id not in [470866478720090114, 567321250696003606]: return
+    if ctx.author.id not in [470866478720090114]: return
     await ctx.message.delete()
     old_stdout = sys.stdout
     redirected_output = sys.stdout = StringIO()
@@ -307,5 +310,4 @@ async def play(ctx, member : discord.Member):
 
     print("Finished")
 
-
-client.run('Nzk1MDk5NjkwNjA5Mjc5MDA2.X_EcSg.3-pRj19XozHwm9trVKrZnKqohEQ')
+client.run(os.environ.get("TOKEN"))
