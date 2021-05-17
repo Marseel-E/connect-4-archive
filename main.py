@@ -3,7 +3,7 @@ from discord.ext import commands
 from io import StringIO
 import database as db
 
-prefix = "-"
+prefix = "!"
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix=prefix, intents=intents)
@@ -33,56 +33,55 @@ async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
         await ctx.send(embed=embed)
 
 
-async def playMove(gameId, column):
+async def playMove(gameId, col):
     game = await db.Get.game(gameId)
     board = game['board']
     player = (game['players'].index(game['turn']) + 1)
     for row in reversed(range(len(board))):
-        if board[row][int(column)] == '0': board[row][int(column)] = str(player); await db.Update.game(gameId, "board", board, True); break
-        elif row == 0:
-            if player == 1: await db.Update.game(gameId, "turn", game['players'][player+1], True)
-            else: await db.Update.game(gameId, "turn", game['players'][player-1], True)
-        else: pass
+        if row == 0 and board[row][int(col)] != '0':
+            return False 
+        
+        if board[row][int(col)] == '0':
+            board[row][int(col)] = str(player)
+            await db.Update.game(gameId, "board", board, True)
+            return True
 
 async def winCheck(gameId):
     game = await db.Get.game(gameId)
     board = game['board']
     player = (game['players'].index(game['turn']) + 1)
     print(f"[winCheck]: checking player {player}")
-    won = True
-    for row in range(len(board)):
-        for col in range(len(board[row])):
+    columns = 7
+    rows = 6
 
-            if col == 0:
-                if board[row][col] == str(player):
+    # Horizontal
+    for col in range(columns-3):
+        for row in range(rows):
+            if board[row][col] == str(player) and board[row][col+1] == str(player) and board[row][col+2] == str(player) and board[row][col+3] == str(player): return True
 
-                    # Horizontal
-                    if board[row][col+1] == str(player) and board[row][col+2] == str(player) and board[row][col+3] == str(player): won = False
+    # Vertical
+    for col in range(columns):
+        for row in range(rows-3):
+            if board[row][col] == str(player) and board[row+1][col] == str(player) and board[row+2][col] == str(player) and board[row+3][col] == str(player): return True
 
-                    # Vertical
-                    if row < 3:
-                        if board[row+1][col] == str(player) and board[row+2][col] == str(player) and board[row+3][col] == str(player): won = False
+    # Ascend
+    for col in range(columns-3):
+        for row in range(rows-3):
+            if board[row][col] == str(player) and board[row+1][col+1] == str(player) and board[row+2][col+2] == str(player) and board[row+3][col+3] == str(player): return True
 
-                    # ascend
-                    if row <= 3:
-                        if board[row+1][col+1] == str(player) and board[row+2][col+2] == str(player) and board[row+3][col+3] == str(player): won = False
-
-                    # descend
-                    if row >= 3:
-                        if board[row-1][col+1] == str(player) and board[row-2][col+2] == str(player) and board[row-3][col+3] == str(player): won = False
-
-            else: pass
+    # Descend
+    for col in range(columns-3):
+        for row in range(3,rows):
+            if board[row][col] == str(player) and board[row-1][col+1] == str(player) and board[row-2][col+2] == str(player) and board[row-3][col+3] == str(player): return True
     
-    return won
+    return False
 
 async def drawCheck(gameId):
     game = await db.Get.game(gameId)
     board = game['board']
     for row in range(len(board)):
         for col in range(len(board[row])):
-
-            if board[row][col] == '0': return False
-
+            if board[row][col] == '0': return False            
     return True
 
 
@@ -129,11 +128,11 @@ async def play(ctx, member : discord.Member):
         # Board embed
         embed = discord.Embed(title="Connect 4", description=f"Reply with `1`-`7` to place your move.\n{board}", color = 0xFFFFFF)
         if game['turn'] == ctx.author.id:
-            embed.add_field(name="Player 1", value=f"{ctx.author} *`(Your turn!)`*", inline=False)
-            embed.add_field(name="Player 2", value=f"{member}", inline=False)
+            embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Your turn!)`*", inline=False)
+            embed.add_field(name=":yellow_circle: Player 2", value=f"{member}", inline=False)
         else:
-            embed.add_field(name="Player 1", value=f"{ctx.author}", inline=False)
-            embed.add_field(name="Player 2", value=f"{member} *`(Your turn!)`*", inline=False)
+            embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author}", inline=False)
+            embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Your turn!)`*", inline=False)
         embed.set_footer(text=f"ID: {game['id']}")
         await ctx.send(embed=embed)
         
@@ -148,12 +147,35 @@ async def play(ctx, member : discord.Member):
         print("Move")
 
         # Move check
-        if int(move) > 7 or int(move) < 1: await ctx.send("Choose a valid column!")
+        if move > '7' or int(move) < 1: await ctx.send("Choose a valid column!")
 
         print("Move check")
 
         # Move play
-        await playMove(game['id'], int(move)-1)
+        result = await playMove(game['id'], int(move)-1)
+        while not (result):
+
+            # Invalid column message
+
+            await ctx.send("Choose a valid column!")
+
+            print("Invalid column message")
+
+            # Move
+            def check(message):
+                return message.content in ['1','2','3','4','5','6','7'] and message.author.id == game['turn']
+            move = await client.wait_for('message', check=check)
+            move = move.content
+
+            print("Move")
+
+            # Move check
+            if move > '7' or int(move) < 1: await ctx.send("Choose a valid column!")
+
+            print("Move check")
+
+            # Move play
+            result = await playMove(game['id'], int(move)-1)
 
         print("Move play")
 
@@ -167,37 +189,34 @@ async def play(ctx, member : discord.Member):
         #- Draw check
         if await drawCheck(game['id']):
             embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0xFFFF00)
-            embed.add_field(name="Player 1", value=f"{ctx.author} *`(Draw!)`*", inline=False)
-            embed.add_field(name="Player 2", value=f"{member} *`(Draw!)`*", inline=False)
+            embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Draw!)`*", inline=False)
+            embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Draw!)`*", inline=False)
             embed.set_footer(text=f"ID: {game['id']}")
             await ctx.send(embed=embed)
             await db.Update.game(game['id'], "status", "finished", True)
             await db.Update.user(ctx.author.id, "draws", 1)
             await db.Update.user(member.id, "draws", 1)
-            await ctx.send(f"Draw!")
 
             print("Draw check"); break
 
         #- Win check
-        if not await winCheck(game['id']):
+        if await winCheck(game['id']):
             if game['turn'] == ctx.author.id:
                 embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0x00FF00)
-                embed.add_field(name="Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
-                embed.add_field(name="Player 2", value=f"{member}", inline=False)
+                embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
+                embed.add_field(name=":yellow_circle: Player 2", value=f"{member}", inline=False)
             else:
                 embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0xFF0000)
-                embed.add_field(name="Player 1", value=f"{ctx.author}", inline=False)
-                embed.add_field(name="Player 2", value=f"{member} *`(Winner!)`*", inline=False)
+                embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author}", inline=False)
+                embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Winner!)`*", inline=False)
             embed.set_footer(text=f"ID: {game['id']}")
             await ctx.send(embed=embed)
             await db.Update.game(game['id'], "status", "finished", True)
             await db.Update.user(game['turn'], "wins", 1)
             loser = 1
             if game['players'].index(game['turn']) == 1: 
-                loser == 0
-                await ctx.send(f"{ctx.author} won!")
-            await db.Update.user(loser, "loses", 1)
-            await ctx.send(f"{member} won!")
+                loser == 0 
+            await db.Update.user(game['players'][loser], "loses", 1)
             
             print("Win check"); break
         
