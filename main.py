@@ -307,4 +307,4 @@ async def play(ctx, member : discord.Member):
     print("Finished")
 
 
-client.run('NtLmng5rFv5C2ZEjF8C-Yh9hqo38WT1j')
+client.run('Rf6vQcrJhpEU7fwx_fxSFG_UEdnUbqEB')
