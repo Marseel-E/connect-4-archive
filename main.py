@@ -18,6 +18,7 @@ async def on_ready():
 @client.command()
 async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
     if ctx.author.id not in [470866478720090114, 567321250696003606]: return
+    await ctx.delete()
     old_stdout = sys.stdout
     redirected_output = sys.stdout = StringIO()
     try:
