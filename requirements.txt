@@ -1,4 +1,4 @@
 discord
 pyrebase
 asyncio
-dotenv
+python-dotenv
