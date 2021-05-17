@@ -1,9 +1,9 @@
-import discord, sys, traceback, pyrebase, typing
+import discord, sys, traceback, pyrebase, typing, asyncio
 from discord.ext import commands
 from io import StringIO
 import database as db
 
-prefix = "!"
+prefix = "-"
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix=prefix, intents=intents)
@@ -17,7 +17,7 @@ async def on_ready():
 
 @client.command()
 async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
-    if ctx.author.id != ctx.guild.owner_id: return
+    if ctx.author.id not in [470866478720090114]: return
     old_stdout = sys.stdout
     redirected_output = sys.stdout = StringIO()
     try:
@@ -107,6 +107,28 @@ async def play(ctx, member : discord.Member):
     
     print("Checks")
 
+    # Opponent
+    msg = await ctx.send(f"{member.mention}, {ctx.author} invited you to a Connect 4 game would you like to play?")
+    await msg.add_reaction("✅")
+    await msg.add_reaction("❌")
+
+    def check(reaction, user):
+        return user == member and str(reaction.emoji) in ["✅", "❌"]
+    try:
+        reaction, user = await client.wait_for('reaction_add', check=check, timeout=150.0)
+    except asyncio.TimeoutError:
+        await ctx.send(f"{ctx.author.mention}, {member} didn't respond in time. Request timedout!")
+        return
+    
+    if reaction.emoji == "❌":
+        await ctx.send(f"{ctx.author.mention}, {member} Refused your request.")
+        return
+    elif reaction.emoji == "✅":
+        pass
+    else: pass
+
+    print("Opponent")
+
     # Starting
     game = await db.Create.game(ctx.author.id, member.id)
     await db.Update.user(ctx.author.id, "playing", True, True)
@@ -141,7 +163,28 @@ async def play(ctx, member : discord.Member):
         # Move
         def check(message):
             return message.content in ['1','2','3','4','5','6','7'] and message.author.id == game['turn']
-        move = await client.wait_for('message', check=check)
+        try:
+            move = await client.wait_for('message', check=check, timeout=300.0)
+        except asyncio.TimeoutError:
+            if game['turn'] == ctx.author.id:
+                await ctx.send(f"{ctx.author} ran away!")
+                embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0x00FF00)
+                embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
+                embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Winner!)`*", inline=False)
+                await db.Update.user(ctx.author.id, "loses", 1)
+                await db.Update.user(member.id, "wins", 1)
+            else:
+                await ctx.send(f"{member} ran away!")
+                embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0xFF0000)
+                embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
+                embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Afk)`*", inline=False)
+                await db.Update.user(member.id, "loses", 1)
+                await db.Update.user(ctx.author.id, "wins", 1)
+            embed.set_footer(text=f"ID: {game['id']}")
+            await ctx.send(embed=embed)
+            await db.Update.game(game['id'], "status", "finished", True)
+            break
+        else: pass
         move = move.content
 
         print("Move")
@@ -164,7 +207,28 @@ async def play(ctx, member : discord.Member):
             # Move
             def check(message):
                 return message.content in ['1','2','3','4','5','6','7'] and message.author.id == game['turn']
-            move = await client.wait_for('message', check=check)
+            try:
+                move = await client.wait_for('message', check=check, timeout=300.0)
+            except asyncio.TimeoutError:
+                if game['turn'] == ctx.author.id:
+                    await ctx.send(f"{ctx.author} ran away!")
+                    embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0x00FF00)
+                    embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
+                    embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Winner!)`*", inline=False)
+                    await db.Update.user(ctx.author.id, "loses", 1)
+                    await db.Update.user(member.id, "wins", 1)
+                else:
+                    await ctx.send(f"{member} ran away!")
+                    embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0xFF0000)
+                    embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
+                    embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Afk)`*", inline=False)
+                    await db.Update.user(member.id, "loses", 1)
+                    await db.Update.user(ctx.author.id, "wins", 1)
+                embed.set_footer(text=f"ID: {game['id']}")
+                await ctx.send(embed=embed)
+                await db.Update.game(game['id'], "status", "finished", True)
+                break
+            else: pass
             move = move.content
 
             print("Move")
