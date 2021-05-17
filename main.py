@@ -17,7 +17,7 @@ async def on_ready():
 
 @client.command()
 async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
-    if ctx.author.id not in [470866478720090114]: return
+    if ctx.author.id not in [470866478720090114, 567321250696003606]: return
     old_stdout = sys.stdout
     redirected_output = sys.stdout = StringIO()
     try:
@@ -307,4 +307,4 @@ async def play(ctx, member : discord.Member):
     print("Finished")
 
 
-client.run('Nzk1MDk5NjkwNjA5Mjc5MDA2.X_EcSg.lXnadtvhkCWOFVb4WVpU4HN4-Sg')
+client.run('NtLmng5rFv5C2ZEjF8C-Yh9hqo38WT1j')
