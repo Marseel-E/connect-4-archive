@@ -12,7 +12,7 @@ client = commands.Bot(command_prefix=prefix, intents=intents)
 @client.event
 async def on_ready():
     print("running...")
-    await client.change_presence(status=discord.Status.online, activity=discord.Game("connect-4.exe|-help"))
+    await client.change_presence(status=discord.Status.online, activity=discord.Game(f"connect-4.exe | {prefix}help"))
 
 
 @client.command()
