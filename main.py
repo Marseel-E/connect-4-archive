@@ -3,15 +3,16 @@ from discord.ext import commands
 from io import StringIO
 import database as db
 
+prefix = "-"
 
 intents = discord.Intents.all()
-client = commands.Bot(command_prefix="!", intents=intents)
+client = commands.Bot(command_prefix=prefix, intents=intents)
 
 
 @client.event
 async def on_ready():
     print("running...")
-    await client.change_presence(status=discord.Status.online, activity=discord.Game("connect-4.exe"))
+    await client.change_presence(status=discord.Status.online, activity=discord.Game("connect-4.exe|-help"))
 
 
 @client.command()
