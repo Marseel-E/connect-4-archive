@@ -1,4 +1,6 @@
 import discord, sys, traceback, pyrebase, typing, asyncio, os
+from discord.client import Client
+from discord.user import ClientUser
 from discord.ext import commands
 from io import StringIO
 import database as db
@@ -6,16 +8,51 @@ from dotenv import load_dotenv
 
 load_dotenv('.env')
 
-prefix = "-"
+# Prefix
+async def prefix(bot, message):
+    data = await db.Get.guild(message.guild.id)
+    return data['prefix']
 
 intents = discord.Intents.all()
-client = commands.Bot(command_prefix=prefix, intents=intents)
+client = commands.Bot(command_prefix=prefix, case_sensitive=True, intents=intents)
 
+print("Prefix")
 
 @client.event
 async def on_ready():
     print("running...")
-    await client.change_presence(status=discord.Status.online, activity=discord.Game(f"connect-4.exe | {prefix}help"))
+    await client.change_presence(status=discord.Status.online, activity=discord.Game(f"connect-4.exe"))
+
+
+@client.group(invoke_without_command=True)
+async def prefix(ctx):
+    data = await db.Get.guild(ctx.guild.id)
+    await ctx.send(f"Current guild prefix: `{data['prefix']}`")
+
+@prefix.command(aliases=['u'])
+@commands.has_permissions(manage_guild=True)
+async def update(ctx, prefix : str):
+    if len(prefix) > 3 or len(prefix) < 1: await ctx.send(f"Your prefix must be `1`-`3` characters long"); return
+    await db.Update.guild(ctx.guild.id, "prefix", prefix, True)
+    await ctx.send(f"Your prefix has been updated!\nNew prefix: `{prefix}`")
+
+@update.error
+async def update_error(ctx, error):
+    data = await db.Get.guild(ctx.guild.id)
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send(f'{ctx.author.mention}, This command requires the "`Manage Server`" permission.')
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f"{ctx.author.mention}, `prefix` is a required argument that is missing.\n`{data['prefix']}prefix update|u (member)`")
+    else: await ctx.send(f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/WZw6BV5YCP)")
+
+
+@client.event
+async def on_message(message):
+    if client.user.mentioned_in(message):
+        data = await db.Get.guild(message.guild.id)
+        await message.channel.send(f"Current server prefix: `{data['prefix']}`"); return
+    
+    await client.process_commands(message)
 
 
 @client.command()
@@ -309,5 +346,12 @@ async def play(ctx, member : discord.Member):
     print("Delete game")
 
     print("Finished")
+
+@play.error
+async def play_error(ctx, error):
+    data = await db.Get.guild(ctx.guild.id)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f"{ctx.author.mention}, `member` is a required argument that is missing.\n`{data['prefix']}play (member)`")
+    else: await ctx.send(f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/WZw6BV5YCP)")
 
 client.run(os.environ.get("TOKEN"))

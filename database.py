@@ -21,6 +21,10 @@ default = {
         "wins": 0,
         "loses": 0,
         "draws": 0
+    },
+
+    "guild": {
+        "prefix": "c-"
     }
 }
 
@@ -60,6 +64,17 @@ class Get:
         for key, value in dataVal.items():
             dataDict[key] = value
         return dataDict
+    
+    async def guild(guildId):
+        data = db.child("connect-4").child("guilds").child(guildId).get()
+        dataVal = data.val()
+        dataDict = {}
+        if dataVal is None:
+            db.child("connect-4").child("guilds").update({guildId: default['guild']})
+            return default['guild']
+        for key, value in dataVal.items():
+            dataDict[key] = value
+        return dataDict
 
 
 class Generate:
@@ -88,7 +103,14 @@ class Update:
             db.child("connect-4").child("users").child(userId).update({key: value})
         else:
             db.child("connect-4").child("users").child(userId).update({key: user[key] + value})
-
+    
+    async def guild(guildId, key, value, overwrite : typing.Optional[bool] = False):
+        guild = await Get.guild(guildId)
+        if not (guild): return False
+        if (overwrite):
+            db.child("connect-4").child("guilds").child(guildId).update({key: value})
+        else:
+            db.child("connect-4").child("guilds").child(guildId).update({key: guild[key] + value})
 
 class Create:
 
