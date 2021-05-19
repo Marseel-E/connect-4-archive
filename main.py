@@ -56,6 +56,7 @@ async def on_message(message):
 
 
 @client.command()
+@commands.is_owner()
 async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
     if ctx.author.id not in [470866478720090114]: return
     await ctx.message.delete()
