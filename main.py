@@ -55,7 +55,7 @@ async def on_message(message):
     await client.process_commands(message)
 
 
-@client.command()
+@client.command(hidden=True)
 @commands.is_owner()
 async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
     if ctx.author.id not in [470866478720090114]: return
