@@ -1,6 +1,4 @@
-import discord, sys, traceback, pyrebase, typing, asyncio, os
-from discord.client import Client
-from discord.user import ClientUser
+import discord, sys, traceback, typing, asyncio, os
 from discord.ext import commands
 from io import StringIO
 import database as db
@@ -12,11 +10,11 @@ load_dotenv('.env')
 async def prefix(bot, message):
     data = await db.Get.guild(message.guild.id)
     return data['prefix']
+    # return "!"
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix=prefix, case_sensitive=True, intents=intents)
 
-print("Prefix")
 
 @client.event
 async def on_ready():
@@ -48,9 +46,10 @@ async def update_error(ctx, error):
 
 @client.event
 async def on_message(message):
+    data = await db.Get.guild(message.guild.id)
     if client.user.mentioned_in(message):
-        data = await db.Get.guild(message.guild.id)
-        await message.channel.send(f"Current server prefix: `{data['prefix']}`"); return
+        if not message.content.startswith(data['prefix']): await message.channel.send(f"Current server prefix: `{data['prefix']}`")
+        return
     
     await client.process_commands(message)
 
@@ -58,7 +57,6 @@ async def on_message(message):
 @client.command(hidden=True)
 @commands.is_owner()
 async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
-    if ctx.author.id not in [470866478720090114]: return
     await ctx.message.delete()
     old_stdout = sys.stdout
     redirected_output = sys.stdout = StringIO()
