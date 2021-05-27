@@ -1,32 +1,44 @@
-import discord, sys, traceback, typing, asyncio, os
+import discord, asyncio, os, humanize
 from discord.ext import commands
-from io import StringIO
-import database as db
+from func import database as db
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
-load_dotenv('.env')
+load_dotenv('func\.env')
+
+# Variables
+terminalChannel = 844811376576954369
 
 # Prefix
 async def prefix(bot, message):
     data = await db.Get.guild(message.guild.id)
     return data['prefix']
-    # return "!"
 
-intents = discord.Intents.all()
+# Intents
+intents = discord.Intents.default()
+intents.guilds=True
+intents.members=True
+intents.reactions=True
+intents.voice_states=True
+
+# Client
 client = commands.Bot(command_prefix=prefix, case_sensitive=True, intents=intents)
 
 
+# On ready event
 @client.event
 async def on_ready():
     print("running...")
     await client.change_presence(status=discord.Status.online, activity=discord.Game(f"connect-4.exe"))
 
 
+# Prefix command
 @client.group(invoke_without_command=True)
 async def prefix(ctx):
     data = await db.Get.guild(ctx.guild.id)
     await ctx.send(f"Current guild prefix: `{data['prefix']}`")
 
+# Update prefix subcommand
 @prefix.command(aliases=['u'])
 @commands.has_permissions(manage_guild=True)
 async def update(ctx, prefix : str):
@@ -34,6 +46,7 @@ async def update(ctx, prefix : str):
     await db.Update.guild(ctx.guild.id, "prefix", prefix, True)
     await ctx.send(f"Your prefix has been updated!\nNew prefix: `{prefix}`")
 
+# Update error handler
 @update.error
 async def update_error(ctx, error):
     data = await db.Get.guild(ctx.guild.id)
@@ -44,6 +57,7 @@ async def update_error(ctx, error):
     else: await ctx.send(f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/WZw6BV5YCP)")
 
 
+# On message event
 @client.event
 async def on_message(message):
     data = await db.Get.guild(message.guild.id)
@@ -54,25 +68,15 @@ async def on_message(message):
     await client.process_commands(message)
 
 
-@client.command(hidden=True)
-@commands.is_owner()
-async def py(ctx, unformatted : typing.Optional[bool] = False, *, cmd):
-    await ctx.message.delete()
-    old_stdout = sys.stdout
-    redirected_output = sys.stdout = StringIO()
-    try:
-        exec(str(cmd))
-    except Exception as e:
-        traceback.print_stack(file=sys.stdout)
-        print(sys.exc_info())
-    sys.stdout = old_stdout
-    if (unformatted):
-        await ctx.send(redirected_output.getvalue())
-    else:
-        embed = discord.Embed(title=f"Input:\n```py\n{cmd}\n```", description=f"Output:\n`{redirected_output.getvalue()}`", color = 0xFFFFFF)
-        await ctx.send(embed=embed)
+# Discord terminal
+async def discordTerminal(msg):
+    msg = str(msg)
+    channel = await client.fetch_channel(terminalChannel)
+    msg = [msg[i:i+2048] for i in range(0, len(msg), 2048)]
+    await channel.send(f"```cmd\n{msg}\n```")
 
 
+# Game play move
 async def playMove(gameId, col):
     game = await db.Get.game(gameId)
     board = game['board']
@@ -86,6 +90,7 @@ async def playMove(gameId, col):
             await db.Update.game(gameId, "board", board, True)
             return True
 
+# Game wich check
 async def winCheck(gameId):
     game = await db.Get.game(gameId)
     board = game['board']
@@ -116,6 +121,7 @@ async def winCheck(gameId):
     
     return False
 
+# Game draw check
 async def drawCheck(gameId):
     game = await db.Get.game(gameId)
     board = game['board']
@@ -124,21 +130,23 @@ async def drawCheck(gameId):
             if board[row][col] == '0': return False            
     return True
 
-
-async def prettierGame(board):
-    newBoard = ""
+# Game board formatter
+async def prettierGame(gameId):
+    game = await db.Get.game(gameId)
+    user = await db.Get.user(game['players'][0])
+    board = game['board']; newBoard = ""
     for row in range(len(board)):
         newBoard += f"\n"
         for col in range(len(board[row])):
-            if board[row][col] == '0': newBoard += ":black_circle: "
-            if board[row][col] == '1': newBoard += ":blue_circle: "
-            if board[row][col] == '2': newBoard += ":yellow_circle: "
+            if board[row][col] == '0': newBoard += f"{user['background']} "
+            if board[row][col] == '1': newBoard += f"{user['primaryDisc']} "
+            if board[row][col] == '2': newBoard += f"{user['secondaryDisc']} "
     return newBoard
 
 
+# Play command
 @client.command()
 async def play(ctx, member : discord.Member):
-    
     # Checks
     playerOne = await db.Get.user(ctx.author.id)
     playerTwo = await db.Get.user(member.id)
@@ -163,9 +171,8 @@ async def play(ctx, member : discord.Member):
     if reaction.emoji == "❌":
         await ctx.send(f"{ctx.author.mention}, {member} Refused your request.")
         return
-    elif reaction.emoji == "✅":
+    if reaction.emoji == "✅":
         pass
-    else: pass
 
     print("Opponent")
 
@@ -176,6 +183,11 @@ async def play(ctx, member : discord.Member):
     
     print("Starting")
 
+    # Game time
+    startTime = datetime.utcnow()
+
+    print("Game time")
+
     # On-going
     while game['status'] != "finished" or game['status'] == "on-going":
 
@@ -183,18 +195,18 @@ async def play(ctx, member : discord.Member):
 
         # Game data
         game = await db.Get.game(game['id'])
-        board = await prettierGame(game['board'])
+        board = await prettierGame(game['id'])
 
         print("Game data")
 
         # Board embed
-        embed = discord.Embed(title="Connect 4", description=f"Reply with `1`-`7` to place your move.\n{board}", color = 0xFFFFFF)
+        embed = discord.Embed(title="Connect 4", description=f"Reply with `1`-`7` to place your move.\n{board}", color = int(playerOne['embedColor'], 16))
         if game['turn'] == ctx.author.id:
-            embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Your turn!)`*", inline=False)
-            embed.add_field(name=":yellow_circle: Player 2", value=f"{member}", inline=False)
+            embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Your turn!)`*", inline=False)
+            embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member}", inline=False)
         else:
-            embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author}", inline=False)
-            embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Your turn!)`*", inline=False)
+            embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author}", inline=False)
+            embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Your turn!)`*", inline=False)
         embed.set_footer(text=f"ID: {game['id']}")
         await ctx.send(embed=embed)
         
@@ -208,16 +220,16 @@ async def play(ctx, member : discord.Member):
         except asyncio.TimeoutError:
             if game['turn'] == ctx.author.id:
                 await ctx.send(f"{ctx.author} ran away!")
-                embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0x00FF00)
-                embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
-                embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Winner!)`*", inline=False)
+                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
+                embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
+                embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Winner!)`*", inline=False)
                 await db.Update.user(ctx.author.id, "loses", 1)
                 await db.Update.user(member.id, "wins", 1)
             else:
                 await ctx.send(f"{member} ran away!")
-                embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0xFF0000)
-                embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
-                embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Afk)`*", inline=False)
+                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
+                embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
+                embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Afk)`*", inline=False)
                 await db.Update.user(member.id, "loses", 1)
                 await db.Update.user(ctx.author.id, "wins", 1)
             embed.set_footer(text=f"ID: {game['id']}")
@@ -252,16 +264,16 @@ async def play(ctx, member : discord.Member):
             except asyncio.TimeoutError:
                 if game['turn'] == ctx.author.id:
                     await ctx.send(f"{ctx.author} ran away!")
-                    embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0x00FF00)
-                    embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
-                    embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Winner!)`*", inline=False)
+                    embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
+                    embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
+                    embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Winner!)`*", inline=False)
                     await db.Update.user(ctx.author.id, "loses", 1)
                     await db.Update.user(member.id, "wins", 1)
                 else:
                     await ctx.send(f"{member} ran away!")
-                    embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0xFF0000)
-                    embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
-                    embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Afk)`*", inline=False)
+                    embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
+                    embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
+                    embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Afk)`*", inline=False)
                     await db.Update.user(member.id, "loses", 1)
                     await db.Update.user(ctx.author.id, "wins", 1)
                 embed.set_footer(text=f"ID: {game['id']}")
@@ -285,16 +297,16 @@ async def play(ctx, member : discord.Member):
 
         # Game data
         game = await db.Get.game(game['id'])
-        board = await prettierGame(game['board'])
+        board = await prettierGame(game['id'])
 
         print("Game data")
 
         # Game checks
         #- Draw check
         if await drawCheck(game['id']):
-            embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0xFFFF00)
-            embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Draw!)`*", inline=False)
-            embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Draw!)`*", inline=False)
+            embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
+            embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Draw!)`*", inline=False)
+            embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Draw!)`*", inline=False)
             embed.set_footer(text=f"ID: {game['id']}")
             await ctx.send(embed=embed)
             await db.Update.game(game['id'], "status", "finished", True)
@@ -306,13 +318,13 @@ async def play(ctx, member : discord.Member):
         #- Win check
         if await winCheck(game['id']):
             if game['turn'] == ctx.author.id:
-                embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0x00FF00)
-                embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
-                embed.add_field(name=":yellow_circle: Player 2", value=f"{member}", inline=False)
+                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
+                embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
+                embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member}", inline=False)
             else:
-                embed = discord.Embed(title="Connect 4", description=f"{board}", color = 0xFF0000)
-                embed.add_field(name=":blue_circle: Player 1", value=f"{ctx.author}", inline=False)
-                embed.add_field(name=":yellow_circle: Player 2", value=f"{member} *`(Winner!)`*", inline=False)
+                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
+                embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author}", inline=False)
+                embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Winner!)`*", inline=False)
             embed.set_footer(text=f"ID: {game['id']}")
             await ctx.send(embed=embed)
             await db.Update.game(game['id'], "status", "finished", True)
@@ -344,6 +356,12 @@ async def play(ctx, member : discord.Member):
 
     print("Delete game")
 
+    # Game time
+    timeSpent = datetime.utcnow() - startTime
+    await ctx.send(f"Time spent: {humanize.precisedelta(timeSpent)}")
+
+    print("Game time")
+
     print("Finished")
 
 @play.error
@@ -351,6 +369,26 @@ async def play_error(ctx, error):
     data = await db.Get.guild(ctx.guild.id)
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f"{ctx.author.mention}, `member` is a required argument that is missing.\n`{data['prefix']}play (member)`")
-    else: await ctx.send(f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/WZw6BV5YCP)")
+    else:
+        await ctx.send(f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our support server\n(https://discord.gg/WZw6BV5YCP)")
+        await discordTerminal(error)
+
+
+@client.command()
+async def color(ctx, clr):
+    embed = discord.Embed(description = clr, color= int(str(clr), 16))
+    await ctx.send(embed=embed)
+
+
+if __name__ == ('__main__'):
+    for file in os.listdir("cogs"):
+        if file.endswith(".py"):
+            try:
+                client.load_extension(f"cogs.{file[:-3]}")
+            except Exception as e:
+                print(f"[Main]: Failed to load '{file[:-3]}': {e}\n")
+            else:
+                print(f"[{file[:-3]}]: Loaded..\n")
+
 
 client.run(os.environ.get("TOKEN"))
