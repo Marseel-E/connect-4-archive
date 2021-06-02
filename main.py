@@ -3,15 +3,16 @@ from discord.ext import commands
 from func import database as db
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from func import default
 
 load_dotenv('func\.env')
 
-# Variables
-terminalChannel = 844811376576954369
-
 # Prefix
 async def prefix(bot, message):
+    # print(message)
     data = await db.Get.guild(message.guild.id)
+    # if message.author.id == default.developer() and message.content.lower() == f"beta{data['prefix']}":
+    #     return f"beta{data['prefix']}"
     return data['prefix']
 
 # Intents
@@ -71,7 +72,7 @@ async def on_message(message):
 # Discord terminal
 async def discordTerminal(msg):
     msg = str(msg)
-    channel = await client.fetch_channel(terminalChannel)
+    channel = await client.fetch_channel(default.terminal())
     msg = [msg[i:i+2048] for i in range(0, len(msg), 2048)]
     await channel.send(f"```cmd\n{msg}\n```")
 
@@ -134,13 +135,14 @@ async def drawCheck(gameId):
 async def prettierGame(gameId):
     game = await db.Get.game(gameId)
     user = await db.Get.user(game['players'][0])
+    theme = await db.Get.theme(game)
     board = game['board']; newBoard = ""
     for row in range(len(board)):
         newBoard += f"\n"
         for col in range(len(board[row])):
-            if board[row][col] == '0': newBoard += f"{user['background']} "
-            if board[row][col] == '1': newBoard += f"{user['primaryDisc']} "
-            if board[row][col] == '2': newBoard += f"{user['secondaryDisc']} "
+            if board[row][col] == '0': newBoard += f"{theme['background']} "
+            if board[row][col] == '1': newBoard += f"{theme['oneDisc']} "
+            if board[row][col] == '2': newBoard += f"{theme['twoDisc']} "
     return newBoard
 
 
@@ -148,6 +150,7 @@ async def prettierGame(gameId):
 @client.command()
 async def play(ctx, member : discord.Member):
     # Checks
+    if member == ctx.author: await ctx.send("No. Just.. No"); return
     playerOne = await db.Get.user(ctx.author.id)
     playerTwo = await db.Get.user(member.id)
     if (playerOne['playing']): await ctx.send(f"You're already playing a game!"); return
@@ -180,6 +183,8 @@ async def play(ctx, member : discord.Member):
     game = await db.Create.game(ctx.author.id, member.id)
     await db.Update.user(ctx.author.id, "playing", True, True)
     await db.Update.user(member.id, "playing", True, True)
+    theme = await db.Get.theme(game)
+    playerOne = await db.Get.user(ctx.author.id)
     
     print("Starting")
 
@@ -189,7 +194,9 @@ async def play(ctx, member : discord.Member):
     print("Game time")
 
     # On-going
-    while game['status'] != "finished" or game['status'] == "on-going":
+    while (playerOne['playing']):
+
+
 
         print("On-going")
 
@@ -200,14 +207,14 @@ async def play(ctx, member : discord.Member):
         print("Game data")
 
         # Board embed
-        embed = discord.Embed(title="Connect 4", description=f"Reply with `1`-`7` to place your move.\n{board}", color = int(playerOne['embedColor'], 16))
+        embed = discord.Embed(title="Connect 4", description=f"Reply with `1`-`7` to place your move.\n{board}", color = int(theme['embedColor'], 16))
         if game['turn'] == ctx.author.id:
-            embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Your turn!)`*", inline=False)
-            embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member}", inline=False)
+            embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Your turn!)`*", inline=False)
+            embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member}", inline=False)
         else:
-            embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author}", inline=False)
-            embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Your turn!)`*", inline=False)
-        embed.set_footer(text=f"ID: {game['id']}")
+            embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author}", inline=False)
+            embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Your turn!)`*", inline=False)
+        embed.set_footer(text=f"ID: {game['id']} {default.footer(True)}")
         await ctx.send(embed=embed)
         
         print("Board embed")
@@ -218,21 +225,19 @@ async def play(ctx, member : discord.Member):
         try:
             move = await client.wait_for('message', check=check, timeout=300.0)
         except asyncio.TimeoutError:
+            embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(theme['embedColor'], 16))
             if game['turn'] == ctx.author.id:
-                await ctx.send(f"{ctx.author} ran away!")
-                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
-                embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
-                embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Winner!)`*", inline=False)
-                await db.Update.user(ctx.author.id, "loses", 1)
-                await db.Update.user(member.id, "wins", 1)
+                user, oponent = member, ctx.author
+                embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
+                embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Winner!)`*", inline=False)
             else:
-                await ctx.send(f"{member} ran away!")
-                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
-                embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
-                embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Afk)`*", inline=False)
-                await db.Update.user(member.id, "loses", 1)
-                await db.Update.user(ctx.author.id, "wins", 1)
-            embed.set_footer(text=f"ID: {game['id']}")
+                user, oponent = member, ctx.author
+                embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Winner!)`*", inline=False)
+                embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member} *`(Afk)`*", inline=False)
+            await ctx.send(f"{user} ran away!")
+            await db.Update.user(user.id, "loses", 1)
+            await db.Update.user(oponent.id, "wins", 1)
+            embed.set_footer(text=f"ID: {game['id']} {default.footer(True)}")
             await ctx.send(embed=embed)
             await db.Update.game(game['id'], "status", "finished", True)
             break
@@ -245,6 +250,45 @@ async def play(ctx, member : discord.Member):
         if move > '7' or int(move) < 1: await ctx.send("Choose a valid column!")
 
         print("Move check")
+
+        #! Quit check
+        # prefix = await prefix()
+
+        # def check(m):
+        #     return m.content.lower() in [f"{prefix}quit", "quit"] and m.author in game['players']
+
+        # try:
+        #     msg = await client.wait_for('message', check=check)
+        # except asyncio.TimeoutError:
+        #     pass
+
+        # if msg.content.lower() in [f"{prefix}quit", "quit"]:
+        #     msg = await ctx.send(f"{ctx.author.mention}, Respond with the game id to confirm your request.")
+        #     def check(m):
+        #         return m.content.strip() == game['id'] and m.author.id in game['players']
+
+        #     try:
+        #         msg = await client.wait_for('message', check=check, timeout=30) 
+        #     except asyncio.TimeoutError:
+        #         await msg.delete()
+        #         msg2 = await ctx.send(f"{ctx.author.mention}, You didn't respond in time, Request timed out.")
+        #         await asyncio.sleep(3)
+        #         await msg2.delete()
+        #         pass
+        #     else:
+        #         await ctx.send(f"Game (`{msg.content}`) is not a valid game.")
+
+        #     opponent = [id for id in game['players'] if msg.author.id != id]
+        #     await db.Delete.game(msg.content.lower())
+        #     await db.Update.user(ctx.author.id, "playing", False, True)
+        #     await db.Update.user(member.id, "playing", False, True)
+        #     await db.Update.user(msg.author.id, "loses", 1)
+        #     await db.Update.user(opponent[0], "wins", 1)
+        #     member = await client.fetch_user(opponent)
+        #     await ctx.send(f"{member.mention}, Won!")
+        #     return
+        
+        # else: pass
 
         # Move play
         result = await playMove(game['id'], int(move)-1)
@@ -262,21 +306,19 @@ async def play(ctx, member : discord.Member):
             try:
                 move = await client.wait_for('message', check=check, timeout=300.0)
             except asyncio.TimeoutError:
+                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(theme['embedColor'], 16))
                 if game['turn'] == ctx.author.id:
-                    await ctx.send(f"{ctx.author} ran away!")
-                    embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
-                    embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
-                    embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Winner!)`*", inline=False)
-                    await db.Update.user(ctx.author.id, "loses", 1)
-                    await db.Update.user(member.id, "wins", 1)
+                    user, oponent = ctx.author, member
+                    embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author} *`(Afk)`*", inline=False)
+                    embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Winner!)`*", inline=False)
                 else:
-                    await ctx.send(f"{member} ran away!")
-                    embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
-                    embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
-                    embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Afk)`*", inline=False)
-                    await db.Update.user(member.id, "loses", 1)
-                    await db.Update.user(ctx.author.id, "wins", 1)
-                embed.set_footer(text=f"ID: {game['id']}")
+                    user, oponent = member, ctx.author
+                    embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Winner!)`*", inline=False)
+                    embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member} *`(Afk)`*", inline=False)
+                await ctx.send(f"{user} ran away!")
+                await db.Update.user(user.id, "loses", 1)
+                await db.Update.user(oponent.id, "wins", 1)
+                embed.set_footer(text=f"ID: {game['id']} {default.footer(True)})")
                 await ctx.send(embed=embed)
                 await db.Update.game(game['id'], "status", "finished", True)
                 break
@@ -304,10 +346,10 @@ async def play(ctx, member : discord.Member):
         # Game checks
         #- Draw check
         if await drawCheck(game['id']):
-            embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
-            embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Draw!)`*", inline=False)
-            embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Draw!)`*", inline=False)
-            embed.set_footer(text=f"ID: {game['id']}")
+            embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(theme['embedColor'], 16))
+            embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Draw!)`*", inline=False)
+            embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Draw!)`*", inline=False)
+            embed.set_footer(text=f"ID: {game['id']} {default.footer(True)}")
             await ctx.send(embed=embed)
             await db.Update.game(game['id'], "status", "finished", True)
             await db.Update.user(ctx.author.id, "draws", 1)
@@ -317,15 +359,14 @@ async def play(ctx, member : discord.Member):
 
         #- Win check
         if await winCheck(game['id']):
+            embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(theme['embedColor'], 16))
             if game['turn'] == ctx.author.id:
-                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
-                embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author} *`(Winner!)`*", inline=False)
-                embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member}", inline=False)
+                embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Winner!)`*", inline=False)
+                embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member}", inline=False)
             else:
-                embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(playerOne['embedColor'], 16))
-                embed.add_field(name=f"{playerOne['primaryDisc']} Player 1", value=f"{ctx.author}", inline=False)
-                embed.add_field(name=f"{playerOne['secondaryDisc']} Player 2", value=f"{member} *`(Winner!)`*", inline=False)
-            embed.set_footer(text=f"ID: {game['id']}")
+                embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author}", inline=False)
+                embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Winner!)`*", inline=False)
+            embed.set_footer(text=f"ID: {game['id']} {default.footer(True)}")
             await ctx.send(embed=embed)
             await db.Update.game(game['id'], "status", "finished", True)
             await db.Update.user(game['turn'], "wins", 1)
@@ -374,9 +415,10 @@ async def play_error(ctx, error):
         await discordTerminal(error)
 
 
-@client.command()
+@client.command(aliases=['c'])
 async def color(ctx, clr):
     embed = discord.Embed(description = clr, color= int(str(clr), 16))
+    embed.set_footer(default.footer())
     await ctx.send(embed=embed)
 
 

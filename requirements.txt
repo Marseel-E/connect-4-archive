@@ -2,4 +2,3 @@ discord
 pyrebase
 asyncio
 python-dotenv
-humanize
