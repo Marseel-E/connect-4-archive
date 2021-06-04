@@ -1,6 +1,7 @@
 import discord, sys, traceback, typing, os, asyncio
 from discord.ext import commands
 from io import StringIO
+from func import database as db
 
 
 class Developer(commands.Cog):
@@ -141,6 +142,19 @@ class Developer(commands.Cog):
         embed.set_image(url='https://media.giphy.com/media/Ju7l5y9osyymQ/giphy.gif')
         await member.send(embed=embed)
         await ctx.message.delete()
+    
+
+    @commands.command(help="Updates user's database", aliases=['u'])
+    @commands.is_owner()
+    async def update(self, ctx, member : typing.Optional[discord.User], key : str, value : typing.Union[str, int], overwrite : typing.Optional[bool]):
+        user = ctx.author
+        if (member):
+            user = member
+        if (overwrite):
+            await db.Update.user(user.id, key, value, overwrite)
+            await ctx.send(f"{ctx.author.mention}, Updated {user} {key} to {value}"); return
+        await db.Update.user(user.id, key, value, overwrite)
+        await ctx.send(f"{ctx.author.mention}, Updated {user} {key} by {value}"); return
 
 
 def setup(client):

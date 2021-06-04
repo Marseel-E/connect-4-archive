@@ -676,7 +676,7 @@ class Game(commands.Cog):
         embed.add_field(name="Secondary disc:", value=f"{data['secondaryDisc']} `{fix(data['secondaryDisc'])}`", inline=True)
         embed.add_field(name="Background:", value=f"{data['background']} `{fix(data['background'])}`", inline=False)
         embed.add_field(name="Embed color:", value=f"`{data['embedColor']}`", inline=False)
-        embed.set_footer(text = f"Exp: {round(data['exp'])} / {round((data['level'] * 4.231) * 100)} {default.footer(True)}")
+        embed.set_footer(text = f"Exp: {round(int(data['exp']))} / {round((int(data['level']) * 4.231) * 100)} {default.footer(True)}")
         await ctx.send(embed=embed)
 
 

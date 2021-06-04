@@ -180,7 +180,7 @@ class Update:
         if (overwrite):
             db.child("connect-4").child("games").child(gameId).update({key: value})
         else:
-            db.child("connect-4").child("games").child(gameId).update({key: game[key] + value})
+            db.child("connect-4").child("games").child(gameId).update({key: int(game[key]) + int(value)})
 
     async def user(userId, key, value, overwrite : typing.Optional[bool] = False):
         user = await Get.user(userId)
@@ -188,7 +188,7 @@ class Update:
         if (overwrite):
             db.child("connect-4").child("users").child(userId).update({key: value})
         else:
-            db.child("connect-4").child("users").child(userId).update({key: user[key] + value})
+            db.child("connect-4").child("users").child(userId).update({key: int(user[key]) + int(value)})
     
     async def guild(guildId, key, value, overwrite : typing.Optional[bool] = False):
         guild = await Get.guild(guildId)
@@ -196,7 +196,7 @@ class Update:
         if (overwrite):
             db.child("connect-4").child("guilds").child(guildId).update({key: value})
         else:
-            db.child("connect-4").child("guilds").child(guildId).update({key: guild[key] + value})
+            db.child("connect-4").child("guilds").child(guildId).update({key: int(guild[key]) + int(value)})
     
     async def inventory(userId, child, item_name):
         data = await Fetch.items()
