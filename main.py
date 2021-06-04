@@ -17,7 +17,6 @@ async def get_prefix(bot, message):
         return data['prefix']
     else:
         if message.author.id == default.developer(): return "dev."
-        return "<Unuseable>" + str(random.randint(1000000000,9999999999))
 
 # Intents
 intents = discord.Intents.default()
