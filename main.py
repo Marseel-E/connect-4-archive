@@ -10,15 +10,14 @@ load_dotenv('func\.env')
 # Prefix
 async def get_prefix(bot, message):
     if (message.author.bot): return
-    elif message.author.id == default.developer(): return "dev."
+    data = await db.Get.guild(message.guild.id)
+    try:
+        os.listdir('C:\\Users\Marsel')
+    except FileNotFoundError:
+        return data['prefix']
     else:
-        data = await db.Get.guild(message.guild.id)
-        try:
-            os.listdir('C:\\Users\Marsel')
-        except FileNotFoundError:
-            return data['prefix']
-        else:
-            return "<Unuseable>" + str(random.randint(1000000000,9999999999))
+        if message.author.id == default.developer(): return "dev."
+        return "<Unuseable>" + str(random.randint(1000000000,9999999999))
 
 # Intents
 intents = discord.Intents.default()
