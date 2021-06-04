@@ -135,6 +135,7 @@ class Developer(commands.Cog):
 
 
     @commands.command(aliases=['rr'], help="Sends a rickroll GIF in the member's dm.")
+    @commands.is_owner()
     async def rickroll(self, ctx, member : discord.Member):
         embed = discord.Embed(color=0x5261F8)
         embed.set_image(url='https://media.giphy.com/media/Ju7l5y9osyymQ/giphy.gif')
