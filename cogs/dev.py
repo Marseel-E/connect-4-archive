@@ -1,15 +1,15 @@
-import discord, sys, traceback, typing
+import discord, sys, traceback, typing, os, asyncio
 from discord.ext import commands
 from io import StringIO
 
 
-class Handler(commands.Cog):
+class Developer(commands.Cog):
     def __init__(self, client):
         self.client = client
 
 
     # Python, Py command
-    @commands.command(hidden=True)
+    @commands.command(help="Evaluates Python code.")
     @commands.is_owner()
     async def py(self, ctx, unformatted : typing.Optional[bool] = False, *, cmd):
         await ctx.message.delete()
@@ -31,31 +31,116 @@ class Handler(commands.Cog):
                 await ctx.send(embed=embed)
 
 
-    @commands.group(invoke_without_command=True, hidden=True)
+    @commands.command(help="Loads a specific or all cogs.")
     @commands.is_owner()
-    async def tech_help(self, ctx):
-        embed = discord.Embed(title="Help", description="`-help <category>` for a list of available commands.", color = 0x5261F8)
-        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/827617285899943956/848145731570237470/27304b9b14ce9bd8a28ca637ed92070e-blue-circle-question-mark-icon-by-vexels.png")
-        embed.add_field(name=":performing_arts: Fun *(5)*", value="`-help fun`", inline=False)
-        embed.add_field(name=":shield: Moderation *(19)*", value="`-help moderation`", inline=False)
-        embed.add_field(name=":art: Image *(8)*", value="`-help image`", inline=False)
-        embed.add_field(name=":mag: Other *(15)*", value="`-help other`", inline=False)
-        embed.add_field(name=":man_technologist: Owner *(?)*", value="`-help owner`", inline=False)
-        embed.add_field(name=":eyes: Future *(?)*", value="`-help future`", inline=False)
-        embed.set_footer(text= f"Tech © 2021")
-        await ctx.send(embed=embed)
+    async def load(self, ctx, cog : typing.Optional[str]):
+        if (cog):
+            if cog.endswith(".py"):
+                cog = cog[:-3]
+            try:
+                self.client.load_extension(f"cogs.{cog}")
+            except Exception as e:
+                await ctx.author.send(f"[Main]: Failed to load '{cog}': {e}\n")
+            else:
+                await ctx.send(f"[{cog}]: Loaded..\n")
+        else:
+            await ctx.message.add_reaction('✅')
+
+            def check(reaction, user):
+                return reaction.emoji == '✅' and ctx.author == user
+            
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=15)
+            except asyncio.TimeoutError:
+                await ctx.message.delete()
+
+            else:
+                for file in os.listdir("cogs"):
+                    if file.endswith(".py"):
+                        if file[:-3] != "dev":
+                            try:
+                                self.client.load_extension(f"cogs.{file[:-3]}")
+                            except Exception as e:
+                                await ctx.author.send(f"[Main]: Failed to load '{file[:-3]}': {e}\n")
+                            else:
+                                await ctx.send(f"[{file[:-3]}]: Loaded..\n")
+
+    @commands.command(help="Reloads a specific or all cogs.")
+    @commands.is_owner()
+    async def reload(self, ctx, cog : typing.Optional[str]):
+        if (cog):
+            if cog.endswith(".py"):
+                cog = cog[:-3]
+            try:
+                self.client.reload_extension(f"cogs.{cog}")
+            except Exception as e:
+                await ctx.author.send(f"[Main]: Failed to reload '{cog}': {e}\n")
+            else:
+                await ctx.send(f"[{cog}]: Reloaded..\n")
+        else:
+            await ctx.message.add_reaction('✅')
+
+            def check(reaction, user):
+                return reaction.emoji == '✅' and ctx.author == user
+            
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=15)
+            except asyncio.TimeoutError:
+                await ctx.message.delete()
+
+            else:
+                for file in os.listdir("cogs"):
+                    if file.endswith(".py"):
+                        try:
+                            self.client.reload_extension(f"cogs.{file[:-3]}")
+                        except Exception as e:
+                            await ctx.author.send(f"[Main]: Failed to reload '{file[:-3]}': {e}\n")
+                        else:
+                            await ctx.send(f"[{file[:-3]}]: Reloaded..\n")
     
-    @tech_help.command()
+    @commands.command(help="Unloads a specific or all cogs.")
     @commands.is_owner()
-    async def fun(self, ctx):
-        embed = discord.Embed(title="Help - Fun", description="`-help <command>` for detailed information about a specific command.", color = 0x5261F8)
-        embed.add_field(name="8ball", value="Answers your question with a 'Yes' or 'No'.\n  __Usage:__ `-8ball <question>`", inline=False)
-        embed.add_field(name="flipcoin", value="Flips a coin.\n  __Usage:__ `-flipcoin`", inline=False)
-        embed.add_field(name="hbreak", value="Breaks someone's heart.\n  __Usage:__ `-hbreak <@user>`", inline=False)
-        embed.add_field(name="math", value="Solves the given equation.\n  __Usage:__ `-math <number> <+ | - | * | / | ^ | //> <number>`", inline=False)
-        embed.add_field(name="rolldice", value="Rolls a number between 1 - 6.\n  __Usage:__ `-rolldice`", inline=False)
-        embed.set_footer(text= f"Page: 1 - 1 | Tech © 2021")
-        await ctx.send(embed=embed)
+    async def unload(self, ctx, cog : typing.Optional[str]):
+        if (cog):
+            if cog == "dev" or "dev.py": return
+            if cog.endswith(".py"):
+                cog = cog[:-3]
+            try:
+                self.client.unload_extension(f"cogs.{cog}")
+            except Exception as e:
+                await ctx.author.send(f"[Main]: Failed to unload '{cog}': {e}\n")
+            else:
+                await ctx.send(f"[{cog}]: Unloaded..\n")
+        else:
+            await ctx.message.add_reaction('✅')
+
+            def check(reaction, user):
+                return reaction.emoji == '✅' and ctx.author == user
+            
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=15)
+            except asyncio.TimeoutError:
+                await ctx.message.delete()
+
+            else:
+                for file in os.listdir("cogs"):
+                    if file.endswith(".py"):
+                        if file[:-3] != "dev":
+                            try:
+                                self.client.unload_extension(f"cogs.{file[:-3]}")
+                            except Exception as e:
+                                await ctx.author.send(f"[Main]: Failed to unload '{file[:-3]}': {e}\n")
+                            else:
+                                await ctx.send(f"[{file[:-3]}]: Unloaded..\n")
+
+
+    @commands.command(aliases=['rr'], help="Sends a rickroll GIF in the member's dm.")
+    async def rickroll(self, ctx, member : discord.Member):
+        embed = discord.Embed(color=0x5261F8)
+        embed.set_image(url='https://media.giphy.com/media/Ju7l5y9osyymQ/giphy.gif')
+        await member.send(embed=embed)
+        await ctx.message.delete()
+
 
 def setup(client):
-    client.add_cog(Handler(client))
+    client.add_cog(Developer(client))
