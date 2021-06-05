@@ -25,7 +25,7 @@ default = {
         "loses": 0,
         "draws": 0,
         "exp": 0,
-        "level": 0,
+        "level": 1,
         "rank": 0,
         "primaryDisc": ":blue_circle:",
         "secondaryDisc": ":yellow_circle:",
