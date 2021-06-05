@@ -69,13 +69,6 @@ async def on_message(message):
     await client.process_commands(message)
 
 
-@client.command(aliases=['c'], help="Displays how the given color would look as an embed color.")
-async def color(ctx, hex):
-    embed = discord.Embed(description = hex, color= int(str(hex), 16))
-    embed.set_footer(default.footer())
-    await ctx.send(embed=embed)
-
-
 class Help(commands.HelpCommand):
     def get_command_signature(self, command):
         return f"`{self.clean_prefix}`{command.qualified_name} `{command.signature}`"
