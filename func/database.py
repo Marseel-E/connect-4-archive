@@ -18,6 +18,8 @@ db = firebase.database()
 default = {
     "user": {
         "coins": 0,
+        "cash": 0,
+        "bank": 0,
         "playing": False,
         "wins": 0,
         "loses": 0,

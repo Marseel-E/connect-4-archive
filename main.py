@@ -4,6 +4,7 @@ from func import database as db
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from func import default
+from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
 
 load_dotenv('func\.env')
 

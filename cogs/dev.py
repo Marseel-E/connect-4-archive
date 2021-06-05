@@ -7,6 +7,7 @@ from func import database as db
 class Developer(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.session_message = {}
 
 
     # Python, Py command
