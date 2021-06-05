@@ -44,7 +44,7 @@ class Developer(commands.Cog):
             except Exception as e:
                 await ctx.author.send(f"[Main]: Failed to load '{cog}': {e}\n")
             else:
-                await ctx.send(f"[{cog}]: Loaded..\n")
+                await ctx.send(f"[{cog}]: Loaded..\n", delete_after=5)
         else:
             await ctx.message.add_reaction('✅')
 
@@ -65,7 +65,7 @@ class Developer(commands.Cog):
                             except Exception as e:
                                 await ctx.author.send(f"[Main]: Failed to load '{file[:-3]}': {e}\n")
                             else:
-                                await ctx.send(f"[{file[:-3]}]: Loaded..\n")
+                                await ctx.send(f"[{file[:-3]}]: Loaded..\n", delete_after=5)
 
     @commands.command(help="Reloads a specific or all cogs.")
     @commands.is_owner()
@@ -78,7 +78,7 @@ class Developer(commands.Cog):
             except Exception as e:
                 await ctx.author.send(f"[Main]: Failed to reload '{cog}': {e}\n")
             else:
-                await ctx.send(f"[{cog}]: Reloaded..\n")
+                await ctx.send(f"[{cog}]: Reloaded..\n", delete_after=5)
         else:
             await ctx.message.add_reaction('✅')
 
@@ -98,7 +98,7 @@ class Developer(commands.Cog):
                         except Exception as e:
                             await ctx.author.send(f"[Main]: Failed to reload '{file[:-3]}': {e}\n")
                         else:
-                            await ctx.send(f"[{file[:-3]}]: Reloaded..\n")
+                            await ctx.send(f"[{file[:-3]}]: Reloaded..\n", delete_after=5)
     
     @commands.command(help="Unloads a specific or all cogs.")
     @commands.is_owner()
@@ -112,7 +112,7 @@ class Developer(commands.Cog):
             except Exception as e:
                 await ctx.author.send(f"[Main]: Failed to unload '{cog}': {e}\n")
             else:
-                await ctx.send(f"[{cog}]: Unloaded..\n")
+                await ctx.send(f"[{cog}]: Unloaded..\n", delete_after=5)
         else:
             await ctx.message.add_reaction('✅')
 
@@ -133,16 +133,7 @@ class Developer(commands.Cog):
                             except Exception as e:
                                 await ctx.author.send(f"[Main]: Failed to unload '{file[:-3]}': {e}\n")
                             else:
-                                await ctx.send(f"[{file[:-3]}]: Unloaded..\n")
-
-
-    @commands.command(aliases=['rr'], help="Sends a rickroll GIF in the member's dm.")
-    @commands.is_owner()
-    async def rickroll(self, ctx, member : discord.Member):
-        embed = discord.Embed(color=0x5261F8)
-        embed.set_image(url='https://media.giphy.com/media/Ju7l5y9osyymQ/giphy.gif')
-        await member.send(embed=embed)
-        await ctx.message.delete()
+                                await ctx.send(f"[{file[:-3]}]: Unloaded..\n", delete_after=5)
     
 
     @commands.command(help="Updates user's database", aliases=['u'])
@@ -153,9 +144,9 @@ class Developer(commands.Cog):
             user = member
         if (overwrite):
             await db.Update.user(user.id, key, value, overwrite)
-            await ctx.send(f"{ctx.author.mention}, Updated {user} {key} to {value}"); return
+            await ctx.send(f"{ctx.author.mention}, Updated {user} {key} to {value}", delete_after=5); return
         await db.Update.user(user.id, key, value, overwrite)
-        await ctx.send(f"{ctx.author.mention}, Updated {user} {key} by {value}"); return
+        await ctx.send(f"{ctx.author.mention}, Updated {user} {key} by {value}", delete_after=5)
 
 
 def setup(client):

@@ -1,4 +1,4 @@
-import discord, asyncio, humanize, typing
+import discord, asyncio, humanize, typing, random
 from discord.ext import commands
 from func import database as db
 from func import default
@@ -112,7 +112,8 @@ class Game(commands.Cog):
         try:
             reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=150.0)
         except asyncio.TimeoutError:
-            await ctx.send(f"{ctx.author.mention}, {member} didn't respond in time. Request timedout!")
+            await msg.delete()
+            await ctx.send(f"{ctx.author.mention}, {member} didn't respond in time. Request timedout!", delete_after=5)
             return
         
         if reaction.emoji == "❌":
@@ -136,6 +137,11 @@ class Game(commands.Cog):
         startTime = datetime.utcnow()
 
         print("Game time")
+
+        # Win rewards
+        expAmt = random.randint(10,50)
+
+        print("Win rewards")
 
         # On-going
         while (playerOne['playing']):
@@ -180,6 +186,7 @@ class Game(commands.Cog):
                 await ctx.send(f"{user} ran away!")
                 await db.Update.user(user.id, "loses", 1)
                 await db.Update.user(oponent.id, "wins", 1)
+                await db.Update.user(oponent.id, "exp", expAmt)
                 embed.set_footer(text=f"ID: {game['id']} {default.footer(True)}")
                 await ctx.send(embed=embed)
                 await db.Update.game(game['id'], "status", "finished", True)
@@ -205,6 +212,7 @@ class Game(commands.Cog):
                     await db.Update.user(member.id, "playing", False, True)
                     await db.Update.user(msg.author.id, "loses", 1)
                     await db.Update.user(opponent[0], "wins", 1)
+                    await db.Update.user(opponent[0], "exp", expAmt)
                     member = await self.client.fetch_user(opponent[0])
                     await ctx.send(f"{member.mention}, Won!")
                     return
@@ -250,6 +258,7 @@ class Game(commands.Cog):
                     await ctx.send(f"{user} ran away!")
                     await db.Update.user(user.id, "loses", 1)
                     await db.Update.user(oponent.id, "wins", 1)
+                    await db.Update.user(oponent.id, "exp", expAmt)
                     embed.set_footer(text=f"ID: {game['id']} {default.footer(True)})")
                     await ctx.send(embed=embed)
                     await db.Update.game(game['id'], "status", "finished", True)
@@ -302,6 +311,7 @@ class Game(commands.Cog):
                 await ctx.send(embed=embed)
                 await db.Update.game(game['id'], "status", "finished", True)
                 await db.Update.user(game['turn'], "wins", 1)
+                await db.Update.user(game['turn'], "exp", expAmt)
                 loser = 1
                 if game['players'].index(game['turn']) == 1: 
                     loser == 0 
@@ -331,7 +341,7 @@ class Game(commands.Cog):
 
         # Game time
         timeSpent = datetime.utcnow() - startTime
-        await ctx.send(f"Time spent: {humanize.precisedelta(timeSpent)}")
+        await ctx.send(f"Time spent: {humanize.precisedelta(timeSpent)}", delete_after=10)
 
         print("Game time")
 
@@ -435,7 +445,7 @@ class Game(commands.Cog):
             pass
 
 
-    @commands.command(alises=['p'], help="Displays a specific member's or the user's profile.")
+    @commands.command(aliases=['p'], help="Displays a specific member's or the user's profile.")
     async def profile(self, ctx, member : typing.Optional[discord.Member]):
         user = ctx.author
         if (member):
@@ -446,6 +456,7 @@ class Game(commands.Cog):
         embed.set_thumbnail(url = user.avatar_url)
         embed.add_field(name="Level:", value=data['level'], inline=True)
         embed.add_field(name="Rank:", value="Soon!", inline=True) #- Make rank
+        embed.add_field(name="Coins:", value=f"**Æ**`{data['coins']}`", inline=True)
         embed.add_field(name=f"Games played: `({int(data['wins'] + data['draws'] + data['loses'])})`", value=f"**{data['wins']}** Wins | **{data['draws']}** Draws | **{data['loses']}** Loses", inline=False)
         embed.add_field(name="Primary disc:", value=f"{data['primaryDisc']} `{fix(data['primaryDisc'])}`", inline=True)
         embed.add_field(name="Secondary disc:", value=f"{data['secondaryDisc']} `{fix(data['secondaryDisc'])}`", inline=True)

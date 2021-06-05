@@ -62,17 +62,28 @@ async def prefix_error(ctx, error):
 # On message event
 @client.event
 async def on_message(message):
+    if (message.author.bot): return
+
     if client.user.mentioned_in(message):
         prefix = await get_prefix(client, message)
         if not message.content.startswith(str(prefix)): await message.channel.send(f"Current server prefix: `{prefix}`")
         return
     
+    data = await db.Get.user(message.author.id)
+    if data['exp'] >= int((data['level'] * 4.231) * 100):
+        await db.Update.user(message.author.id, 'exp', int(data['exp'] - int((data['level'] * 4.231) * 100)), True)
+        await db.Update.user(message.author.id, 'level', 1)
+        coinsAmt = random.randint(100,1000)
+        await db.Update.user(message.author.id, 'coins', coinsAmt)
+        await message.channel.send(f"{message.author.mention}, :tada: Congratultations :tada: You've reached level `{data['level'] + 1}`!\n:gift: +**Æ**`{coinsAmt}`")
+        return
+
     await client.process_commands(message)
 
 
 class Help(commands.HelpCommand):
     def get_command_signature(self, command):
-        return f"`{self.clean_prefix}`{command.qualified_name} `{command.signature}`"
+        return f"`{self.clean_prefix}`**{command.qualified_name}** `{command.signature}`"
 
     async def send_bot_help(self, mapping):
         embed = discord.Embed(title="Connect 4 - Help", color=0x5261F8)

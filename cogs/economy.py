@@ -21,8 +21,8 @@ class Economy(commands.Cog):
         embed.set_author(name=user.name, icon_url=user.avatar_url)
         embed.set_footer(text=default.footer())
         msg = await ctx.send(embed=embed, components=[
-                Button(style=ButtonStyle.red, label="Deposit"),
-                Button(style=ButtonStyle.green, label="Withdraw"),
+                [Button(style=ButtonStyle.red, label="Deposit"),
+                Button(style=ButtonStyle.green, label="Withdraw")],
                 ])
         
         def check(res):
@@ -48,7 +48,6 @@ class Economy(commands.Cog):
                         m = await self.client.wait_for('message', check=check, timeout=30)
                     except asyncio.TimeoutError:
                         await msg.delete()
-                        await ctx.send(content=f"{user.mention}, Request timedout.", delete_after=3)
                         break; return
                     
                     else:
@@ -74,7 +73,6 @@ class Economy(commands.Cog):
                         m = await self.client.wait_for('message', check=check, timeout=30)
                     except asyncio.TimeoutError:
                         await msg.delete()
-                        await ctx.send(content=f"{user.mention}, Request timedout.", delete_after=3)
                         break; return
                     
                     else:
@@ -94,6 +92,7 @@ class Economy(commands.Cog):
         # Data
         data = await db.Fetch.items()
         invData = await db.Get.inventory(ctx.author.id)
+        userData = await db.Get.user(ctx.author.id)
         
         # Direct category
         if (category): pass
@@ -173,12 +172,16 @@ class Economy(commands.Cog):
 
                     # Discs
                     if msg in data[child].keys() and msg not in invData[child].keys():
-                        await db.Update.inventory(ctx.author.id, child, msg)
-                        await ctx.send(data[child][msg]['icon'])
-                        break
+                        if userData['coins'] >= data[child][msg]['price']:
+                            await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
+                            await db.Update.inventory(ctx.author.id, child, msg)
+                            await ctx.send(f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`", delete_after=5)
+                            break
+                        else:
+                            await ctx.send(f"You don't have Æ`{data[child][msg]['price']}`", delete_after=5)
                     
                     else:
-                        await ctx.send("Choose a valid item")
+                        await ctx.send("Choose a valid item", delete_after=5)
             
             # Exit
             if reaction.emoji == "❌": await msg.delete(); return
@@ -237,12 +240,16 @@ class Economy(commands.Cog):
 
                     # Discs
                     if msg in data[child].keys() and msg not in invData[child].keys():
-                        await db.Update.inventory(ctx.author.id, child, msg)
-                        await ctx.send(data[child][msg]['icon'])
-                        break
+                        if userData['coins'] >= data[child][msg]['price']:
+                            await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
+                            await db.Update.inventory(ctx.author.id, child, msg)
+                            await ctx.send(f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`", delete_after=5)
+                            break
+                        else:
+                            await ctx.send(f"You don't have Æ`{data[child][msg]['price']}`", delete_after=5)
                     
                     else:
-                        await ctx.send("Choose a valid item")
+                        await ctx.send("Choose a valid item", delete_after=5)
             
             # Exit
             if reaction.emoji == "❌": await msg.delete(); return
@@ -300,12 +307,16 @@ class Economy(commands.Cog):
 
                     # Discs
                     if msg in data[child].keys() and msg not in invData[child].keys():
-                        await db.Update.inventory(ctx.author.id, child, msg)
-                        await ctx.send(data[child][msg]['icon'])
-                        break
+                        if userData['coins'] >= data[child][msg]['price']:
+                            await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
+                            await db.Update.inventory(ctx.author.id, child, msg)
+                            await ctx.send(f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`", delete_after=5)
+                            break
+                        else:
+                            await ctx.send(f"You don't have Æ`{data[child][msg]['price']}`", delete_after=5)
                     
                     else:
-                        await ctx.send("Choose a valid item")
+                        await ctx.send("Choose a valid item", delete_after=5)
             
             # Exit
             if reaction.emoji == "❌": await msg.delete(); return
