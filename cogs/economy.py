@@ -1,4 +1,4 @@
-import discord, typing, asyncio
+import discord, typing, asyncio, random, humanize
 from discord.ext import commands
 from func import database as db
 from func.human import *
@@ -11,7 +11,18 @@ class Economy(commands.Cog):
         self.client = client
 
 
-    @commands.command(aliases=['b', 'bal'], help="Displays your balance.")
+    @commands.command(alises=['r', 'steal'], help="Steal :dollar:money from someone.", hidden=True)
+    @commands.cooldown(1, 160)
+    async def rob(self, ctx, member : discord.Member):
+        mData = await db.Get.user(member.id)
+        if mData['cash'] <= 1000: await ctx.send(f"{ctx.author.mention}, {member} is too poor to rob.", delete_after=5)
+        amount = random.randint(1001, int(mData['cash']))
+        await db.Update.user(ctx.author.id, 'cash', amount)
+        await db.Update.user(member.id, 'cash', int(mData['cash']) - amount, True)
+        await ctx.send(f"{ctx.author.mention}, You've stolen :dollar: {amount} from {member}", delete_after=30)
+
+
+    @commands.command(aliases=['b', 'bal'], help="Displays your balance.", hidden=True)
     async def balance(self, ctx, member : typing.Optional[discord.Member]):
         user = ctx.author
         if (member):

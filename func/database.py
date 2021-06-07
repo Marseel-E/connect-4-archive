@@ -20,12 +20,13 @@ default = {
         "coins": 0,
         "cash": 0,
         "bank": 0,
+        "points": 0,
         "playing": False,
         "wins": 0,
         "loses": 0,
         "draws": 0,
         "exp": 0,
-        "level": 1,
+        "level": 0,
         "rank": 0,
         "primaryDisc": ":blue_circle:",
         "secondaryDisc": ":yellow_circle:",
@@ -70,8 +71,28 @@ class Fetch:
     async def items():
         return items
 
+    async def lobby():
+        data = db.child("connect-4").child("lobby").get()
+        dataList = []
+        dataVal = data.val()
+        if dataVal is None:
+            return [0000000000000000]
+        for key, value in dataVal.items():
+            dataList.append(key)
+        return dataList
+
 
 class Get:
+
+    async def lobby():
+        data = db.child("connect-4").child("lobby").get()
+        dataDict = {}
+        dataVal = data.val()
+        if dataVal is None:
+            return [0000000000000000]
+        for key, value in dataVal.items():
+            dataDict[key] = [value]
+        return dataDict
 
     async def game(gameId): 
         data = db.child("connect-4").child("games").child(gameId).get()
@@ -176,6 +197,9 @@ class Generate:
 
 class Update:
 
+    async def lobby(userId, rank):
+        db.child("connect-4").child("lobby").child(userId).update({"rank": rank})
+
     async def game(gameId, key, value, overwrite : typing.Optional[bool] = False):
         game = await Get.game(gameId)
         if not (game): return False
@@ -225,3 +249,12 @@ class Delete:
 
     async def game(gameId):
         db.child("connect-4").child("games").child(gameId).remove()
+    
+    async def lobby(userId):
+        db.child("connect-4").child("lobby").child(userId).remove()
+    
+    async def user(userId):
+        db.child("connect-4").child("users").child(userId).remove()
+    
+    async def guild(guildId):
+        db.child("connect-4").child("guilds").child(guildId).remove()

@@ -14,11 +14,7 @@ from func.human import *
 #     msg = [msg[i:i+2048] for i in range(0, len(msg), 2048)]
 #     await channel.send(f"```cmd\n{msg}\n```")
 
-
-class Game(commands.Cog):
-    def __init__(self, client):
-        self.client = client
-
+class Backend:
 
     # Game play move
     async def playMove(gameId, col):
@@ -89,8 +85,13 @@ class Game(commands.Cog):
         return newBoard
 
 
+class Game(commands.Cog):
+    def __init__(self, client):
+        self.client = client
+
+
     # Play command
-    @commands.command(help="Play a game of Connect 4 against someone.")
+    @commands.group(invoke_without_command=True, help="Play a game of Connect 4 against someone.")
     async def play(self, ctx, member : discord.Member):
         # Checks
         if (member.bot): return
@@ -149,7 +150,7 @@ class Game(commands.Cog):
 
             # Game data
             game = await db.Get.game(game['id'])
-            board = await Game.prettierGame(game['id'])
+            board = await Backend.prettierGame(game['id'])
 
             print("Game data")
 
@@ -231,7 +232,7 @@ class Game(commands.Cog):
             print("Move check")
 
             # Move play
-            result = await Game.playMove(game['id'], int(move)-1)
+            result = await Backend.playMove(game['id'], int(move)-1)
             while not (result):
 
                 # Invalid column message
@@ -274,19 +275,19 @@ class Game(commands.Cog):
                 print("Move check")
 
                 # Move play
-                result = await Game.playMove(game['id'], int(move)-1)
+                result = await Backend.playMove(game['id'], int(move)-1)
 
             print("Move play")
 
             # Game data
             game = await db.Get.game(game['id'])
-            board = await Game.prettierGame(game['id'])
+            board = await Backend.prettierGame(game['id'])
 
             print("Game data")
 
             # Game checks
             #- Draw check
-            if await Game.drawCheck(game['id']):
+            if await Backend.drawCheck(game['id']):
                 embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(theme['embedColor'], 16))
                 embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Draw!)`*", inline=False)
                 embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Draw!)`*", inline=False)
@@ -299,7 +300,7 @@ class Game(commands.Cog):
                 print("Draw check"); break
 
             #- Win check
-            if await Game.winCheck(game['id']):
+            if await Backend.winCheck(game['id']):
                 embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(theme['embedColor'], 16))
                 if game['turn'] == ctx.author.id:
                     embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Winner!)`*", inline=False)
@@ -346,15 +347,6 @@ class Game(commands.Cog):
         print("Game time")
 
         print("Finished")
-
-    @play.error
-    async def play_error(self, ctx, error):
-        data = await db.Get.guild(ctx.guild.id)
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(f"{ctx.author.mention}, `member` is a required argument that is missing.\n`{data['prefix']}play (member)`")
-        else:
-            await ctx.send(f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our support server\n(https://discord.gg/WZw6BV5YCP)")
-            # await discordTerminal(error) #! FIX
 
 
     @commands.command(aliases=['inv'], help="Displays a specific member's or the user's inventory.")
