@@ -35,7 +35,6 @@ class Backend:
         game = await db.Get.game(gameId)
         board = game['board']
         player = (game['players'].index(game['turn']) + 1)
-        print(f"[winCheck]: checking player {player}")
         columns = 7
         rows = 6
 
@@ -101,20 +100,24 @@ class Game(commands.Cog):
     @commands.command(help="Displays the game board.")
     async def board(self, ctx):
         uData = await db.Get.user(ctx.author.id)
+
         if not (uData['playing']): await ctx.send(f"{ctx.author.mention}, Your not playing.", delete_after=5); return
+        
         gData = await Backend.fetchGame(ctx.author.id)
         board = await Backend.prettierGame(gData['id'])
-        theme = await db.Get.theme
+        theme = await db.Get.theme(gData)
 
-        member = await self.client.fetch_member(gData['players'][1])
+        member = await self.client.fetch_user(gData['players'][1])
 
         embed = discord.Embed(title=f"**{ctx.author.name} <:vs_1:851712364826853376> {member.name}**", description=f"Reply with `1`-`7` to place your move.\n{board}", color = int(theme['embedColor'], 16))
+        
         if gData['turn'] == ctx.author.id:
             embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Your turn!)`*", inline=False)
             embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member}", inline=False)
         else:
             embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author}", inline=False)
             embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Your turn!)`*", inline=False)
+        
         embed.set_footer(text=f"ID: {gData['id']} {default.footer(True)}")
         await ctx.send(embed=embed)
 
@@ -129,8 +132,6 @@ class Game(commands.Cog):
         playerTwo = await db.Get.user(member.id)
         if (playerOne['playing']): await ctx.send(f"You're already playing a game!"); return
         if (playerTwo['playing']): await ctx.send(f"Your opponent is playing a game already!"); return
-        
-        print("Checks")
 
         # Opponent
         msg = await ctx.send(f"{member.mention}, {ctx.author} invited you to a Connect 4 game would you like to play?")
@@ -152,37 +153,26 @@ class Game(commands.Cog):
         if reaction.emoji == "✅":
             pass
 
-        print("Opponent")
-
         # Starting
         game = await db.Create.game(ctx.author.id, member.id)
         await db.Update.user(ctx.author.id, "playing", True, True)
         await db.Update.user(member.id, "playing", True, True)
         theme = await db.Get.theme(game)
         playerOne = await db.Get.user(ctx.author.id)
-        
-        print("Starting")
 
         # Game time
         startTime = datetime.utcnow()
 
-        print("Game time")
-
         # Win rewards
         expAmt = random.randint(10,50)
 
-        print("Win rewards")
-
         # On-going
         while (playerOne['playing']):
-            print("On-going")
 
             # Game data
             game = await db.Get.game(game['id'])
             board = await Backend.prettierGame(game['id'])
             theme = await db.Get.theme(game)
-
-            print("Game data")
 
             # Board embed
             embed = discord.Embed(title="Connect 4", description=f"Reply with `1`-`7` to place your move.\n{board}", color = int(theme['embedColor'], 16))
@@ -194,8 +184,6 @@ class Game(commands.Cog):
                 embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Your turn!)`*", inline=False)
             embed.set_footer(text=f"ID: {game['id']} {default.footer(True)}")
             await ctx.send(embed=embed)
-            
-            print("Board embed")
 
             # Move
             def check(message):
@@ -244,22 +232,16 @@ class Game(commands.Cog):
                     await db.Update.user(msg.author.id, "loses", 1)
                     await db.Update.user(opponent[0], "wins", 1)
                     await db.Update.user(opponent[0], "exp", expAmt)
-                    member = await self.client.fetch_user(opponent[0])
-                    await ctx.send(f"{member.mention}, Won!")
+                    M = await self.client.fetch_user(opponent[0])
+                    await ctx.send(f"{M.mention}, Won!")
                     return
 
             else: pass
-            
-            print("Quit check")
 
             move = move.content
 
-            print("Move")
-
             # Move check
             if move > '7' or int(move) < 1: await ctx.send("Choose a valid column!")
-
-            print("Move check")
 
             # Move play
             result = await Backend.playMove(game['id'], int(move)-1)
@@ -268,8 +250,6 @@ class Game(commands.Cog):
                 # Invalid column message
 
                 await ctx.send("Choose a valid column!")
-
-                print("Invalid column message")
 
                 # Move
                 def check(message):
@@ -297,23 +277,15 @@ class Game(commands.Cog):
                 else: pass
                 move = move.content
 
-                print("Move")
-
                 # Move check
                 if move > '7' or int(move) < 1: await ctx.send("Choose a valid column!")
-
-                print("Move check")
 
                 # Move play
                 result = await Backend.playMove(game['id'], int(move)-1)
 
-            print("Move play")
-
             # Game data
             game = await db.Get.game(game['id'])
             board = await Backend.prettierGame(game['id'])
-
-            print("Game data")
 
             # Game checks
             #- Draw check
@@ -326,8 +298,7 @@ class Game(commands.Cog):
                 await db.Update.game(game['id'], "status", "finished", True)
                 await db.Update.user(ctx.author.id, "draws", 1)
                 await db.Update.user(member.id, "draws", 1)
-
-                print("Draw check"); break
+                break
 
             #- Win check
             if await Backend.winCheck(game['id']):
@@ -347,18 +318,13 @@ class Game(commands.Cog):
                 if game['players'].index(game['turn']) == 1: 
                     loser == 0 
                 await db.Update.user(game['players'][loser], "loses", 1)
-                
-                print("Win check"); break
-            
-            print("Game checks")
+                break
 
             # Turn switch
             if game['turn'] == ctx.author.id:
                 await db.Update.game(game['id'], "turn", member.id, True)
             else:
                 await db.Update.game(game['id'], "turn", ctx.author.id, True)
-            
-            print("Turn switch")
 
 
         # Finished!
@@ -368,15 +334,9 @@ class Game(commands.Cog):
         # Delete game
         await db.Delete.game(game['id'])
 
-        print("Delete game")
-
         # Game time
         timeSpent = datetime.utcnow() - startTime
         await ctx.send(f"Time spent: {humanize.precisedelta(timeSpent)}", delete_after=10)
-
-        print("Game time")
-
-        print("Finished")
 
 
     @commands.command(aliases=['inv'], help="Displays a specific member's or the user's inventory.")
@@ -478,12 +438,12 @@ class Game(commands.Cog):
         embed.set_thumbnail(url = user.avatar_url)
         embed.add_field(name="Level:", value=data['level'], inline=True)
         embed.add_field(name="Rank:", value="Soon!", inline=True) #- Make rank
-        embed.add_field(name="Coins:", value=f"**Æ**`{data['coins']}`", inline=True)
-        embed.add_field(name=f"Games played: `({int(data['wins'] + data['draws'] + data['loses'])})`", value=f"**{data['wins']}** Wins | **{data['draws']}** Draws | **{data['loses']}** Loses", inline=False)
-        embed.add_field(name="Primary disc:", value=f"{data['primaryDisc']} `{fix(data['primaryDisc'])}`", inline=True)
-        embed.add_field(name="Secondary disc:", value=f"{data['secondaryDisc']} `{fix(data['secondaryDisc'])}`", inline=True)
-        embed.add_field(name="Background:", value=f"{data['background']} `{fix(data['background'])}`", inline=False)
-        embed.add_field(name="Embed color:", value=f"`{data['embedColor']}`", inline=False)
+        embed.add_field(name="Coins:", value=f"{HL(data['coins'])}", inline=True)
+        embed.add_field(name=f"Games played: ({HL(int(data['wins'] + data['draws'] + data['loses']))})", value=f"{B(data['wins'])} Wins | {B(data['draws'])} Draws | {B(data['loses'])} Loses", inline=False)
+        embed.add_field(name="Primary disc:", value=f"{data['primaryDisc']} {HL(fix(data['primaryDisc']))}", inline=True)
+        embed.add_field(name="Secondary disc:", value=f"{data['secondaryDisc']} {HL(fix(data['secondaryDisc']))}", inline=True)
+        embed.add_field(name="Background:", value=f"{data['background']} {HL(fix(data['background']))}", inline=False)
+        embed.add_field(name="Embed color:", value=f"{HL(data['embedColor'])}", inline=False)
         embed.set_footer(text = f"Exp: {round(int(data['exp']))} / {round((int(data['level']) * 4.231) * 100)} {default.footer(True)}")
         await ctx.send(embed=embed)
 

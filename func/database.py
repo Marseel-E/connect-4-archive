@@ -26,7 +26,7 @@ default = {
         "loses": 0,
         "draws": 0,
         "exp": 0,
-        "level": 0,
+        "level": 1,
         "rank": 0,
         "primaryDisc": ":blue_circle:",
         "secondaryDisc": ":yellow_circle:",
@@ -195,20 +195,20 @@ class Update:
         else:
             db.child("connect-4").child("games").child(gameId).update({key: int(game[key]) + int(value)})
 
-    async def user(userId, key, value, overwrite : typing.Optional[bool]):
+    async def user(userId, key, value, overwrite : typing.Optional[bool] = False):
         user = await Get.user(userId)
         if not (user): return False
         if (overwrite):
             try:
-                value = int(value)
-            except ValueError:
-                if value in ['True', 'False']:
+                if value in ['True', 'False', True, False]:
                     value = bool(value)
                 else:
-                    value = str(value)
+                    value = int(value)
+            except ValueError:
+                value = str(value)
             db.child("connect-4").child("users").child(userId).update({key: value})
-        else:
-            db.child("connect-4").child("users").child(userId).update({key: int(user[key]) + int(value)})
+            return
+        db.child("connect-4").child("users").child(userId).update({key: int(user[key]) + int(value)})
     
     async def guild(guildId, key, value, overwrite : typing.Optional[bool]):
         guild = await Get.guild(guildId)

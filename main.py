@@ -77,14 +77,14 @@ async def on_message(message):
             return
     
     users = await db.Fetch.user_ids()
-    if message.author.id in users:
+    if str(message.author.id) in users:
         data = await db.Get.user(message.author.id)
         if data['exp'] >= int((data['level'] * 4.231) * 100):
             await db.Update.user(message.author.id, 'exp', int(data['exp'] - int((data['level'] * 4.231) * 100)), True)
             await db.Update.user(message.author.id, 'level', 1)
             coinsAmt = random.randint(100,1000)
             await db.Update.user(message.author.id, 'coins', coinsAmt)
-            await message.channel.send(f"{message.author.mention}, :tada: Congratultations :tada: You've reached level {HL(data['level'] + 1)}!\n:gift: +{HL(coinsAmt)}")
+            await message.channel.send(f"{message.author.mention}, :tada: Congratultations :tada: You've reached level {HL(data['level'] + 1)}!\n:gift: +{HL(coinsAmt)} Coins!")
             return
 
     await client.process_commands(message)
