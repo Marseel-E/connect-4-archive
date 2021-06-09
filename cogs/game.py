@@ -83,11 +83,40 @@ class Backend:
                 if board[row][col] == '1': newBoard += f"{theme['oneDisc']} "
                 if board[row][col] == '2': newBoard += f"{theme['twoDisc']} "
         return newBoard
+    
+    # Fetch game
+    async def fetchGame(userId):
+        games = await db.Fetch.game_ids()
+        for id in games:
+            gData = await db.Get.game(id)
+            if userId in gData['players']:
+                return gData
 
 
 class Game(commands.Cog):
     def __init__(self, client):
         self.client = client
+
+
+    @commands.command(help="Displays the game board.")
+    async def board(self, ctx):
+        uData = await db.Get.user(ctx.author.id)
+        if not (uData['playing']): await ctx.send(f"{ctx.author.mention}, Your not playing.", delete_after=5); return
+        gData = await Backend.fetchGame(ctx.author.id)
+        board = await Backend.prettierGame(gData['id'])
+        theme = await db.Get.theme
+
+        member = await self.client.fetch_member(gData['players'][1])
+
+        embed = discord.Embed(title=f"**{ctx.author.name} <:vs_1:851712364826853376> {member.name}**", description=f"Reply with `1`-`7` to place your move.\n{board}", color = int(theme['embedColor'], 16))
+        if gData['turn'] == ctx.author.id:
+            embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Your turn!)`*", inline=False)
+            embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member}", inline=False)
+        else:
+            embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author}", inline=False)
+            embed.add_field(name=f"{theme['twoDisc']} Player 2", value=f"{member.mention} *`(Your turn!)`*", inline=False)
+        embed.set_footer(text=f"ID: {gData['id']} {default.footer(True)}")
+        await ctx.send(embed=embed)
 
 
     # Play command
@@ -151,6 +180,7 @@ class Game(commands.Cog):
             # Game data
             game = await db.Get.game(game['id'])
             board = await Backend.prettierGame(game['id'])
+            theme = await db.Get.theme(game)
 
             print("Game data")
 

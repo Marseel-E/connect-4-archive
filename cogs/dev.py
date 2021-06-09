@@ -2,6 +2,7 @@ import discord, sys, traceback, typing, os, asyncio
 from discord.ext import commands
 from io import StringIO
 from func import database as db
+from func.human import *
 
 
 class Developer(commands.Cog):
@@ -13,7 +14,7 @@ class Developer(commands.Cog):
     # Python, Py command
     @commands.command(help="Evaluates Python code.")
     @commands.is_owner()
-    async def py(self, ctx, unformatted : typing.Optional[bool] = False, *, cmd):
+    async def py(self, ctx, unformatted : typing.Optional[bool], *, cmd):
         await ctx.message.delete()
         old_stdout = sys.stdout
         redirected_output = sys.stdout = StringIO()
@@ -29,7 +30,7 @@ class Developer(commands.Cog):
         else:
             msg = str(redirected_output.getvalue())
             for i in range(0, len(msg), 2048):
-                embed = discord.Embed(title=f"Input:\n```py\n{cmd}\n```", description=f"Output:\n`{msg[i:i+2000]}`", color = 0xF0F0F0)
+                embed = discord.Embed(title=f"Input:\n{BOX(cmd, 'py')}", description=f"Output:\n{HL(msg[i:i+2000])}", color = 0xF0F0F0)
                 await ctx.send(embed=embed)
 
 
@@ -144,9 +145,36 @@ class Developer(commands.Cog):
             user = member
         if (overwrite):
             await db.Update.user(user.id, key, value, overwrite)
-            await ctx.send(f"{ctx.author.mention}, Updated {user} {key} to {value}", delete_after=5); return
-        await db.Update.user(user.id, key, value, overwrite)
-        await ctx.send(f"{ctx.author.mention}, Updated {user} {key} by {value}", delete_after=5)
+            await ctx.send(f"{ctx.author.mention}, Updated {HL(user)} {HL(key)} to {HL(value)}", delete_after=5)
+        else:
+            await db.Update.user(user.id, key, value, overwrite)
+            await ctx.send(f"{ctx.author.mention}, Updated {HL(user)} {HL(key)} by {HL(value)}", delete_after=5)
+    
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    @commands.has_permissions(manage_messages=True)
+    async def purge(self, ctx, amount = 1):
+        if amount >= 10:
+            msg = await ctx.send(f"Are you sure you want to delete {HL(amount)} messages?")
+            await msg.add_reaction('✅')
+
+            def check(reaction, user):
+                return reaction.emoji == '✅' and user == ctx.author
+            
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', check=check, timeout = 15)
+            except asyncio.TimeoutError:
+                await ctx.message.delete()
+                await msg.delete()
+                return
+
+            else:
+                await msg.delete()
+                pass
+
+        await ctx.message.delete()
+        await ctx.channel.purge(limit=int(amount))
+        await ctx.author.send(f"Deleted {HL(amount)} messages in {HL(ctx.guild.name)} ({HL(ctx.channel.name)})", delete_after=30)
 
 
 def setup(client):

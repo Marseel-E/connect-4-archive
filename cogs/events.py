@@ -14,49 +14,49 @@ class Handler(commands.Cog):
             T = "CommandOnCooldown"
             D = f"Please wait `{humanize.precisedelta(error.retry_after)}` until next use."
 
-        elif isinstance(error, commands.MissingRequiredArgument):
+        if isinstance(error, commands.MissingRequiredArgument):
             T = "MissingRequiredArgument"
             D = f"`{error.param}` is a required argument that is missing."
         
-        elif isinstance(error, commands.MemberNotFound):
+        if isinstance(error, commands.MemberNotFound):
             T = "MemberNotFound"
             D = f"`{error.argument}` not found"
         
-        elif isinstance(error, commands.MissingPermissions):
+        if isinstance(error, commands.MissingPermissions):
             T = "MissingPermissions"
             D = f"This command requires the `{error.missing_perms}` permission."
         
-        elif isinstance(error, commands.BotMissingPermissions):
+        if isinstance(error, commands.BotMissingPermissions):
             T = "MissingPermissions"
             D = f"`{error.missing_perms}` is a required permission that the bot is missing."
         
-        elif isinstance(error, commands.NotOwner):
+        if isinstance(error, commands.NotOwner):
             T = "NotOwner"
             D = "Only the owner of this bot can run this command."
         
-        elif isinstance(error, commands.NSFWChannelRequired):
+        if isinstance(error, commands.NSFWChannelRequired):
             T = "NSFWChannelRequired"
             D = "This command only works in `NSFW` channels."
         
-        elif isinstance(error, commands.TooManyArguments):
+        if isinstance(error, commands.TooManyArguments):
             T = "TooManyArguments"
             D = f"You don't need all these arguments! (`{error.args}`)"
         
-        elif isinstance(error, commands.ChannelNotFound):
+        if isinstance(error, commands.ChannelNotFound):
             T = "ChannelNotFound"
             D = f"`{error.argument}` not found."
         
-        elif isinstance(error, commands.ChannelNotReadable):
+        if isinstance(error, commands.ChannelNotReadable):
             T = "ChannelNotReadable"
             D = f"`{error.argument}` is not readable."
+        
+        # else:
+        #     print(error)
+        #     return
 
-        else:
-            T = "UnknownError"
-            D = f"Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/WZw6BV5YCP)."
-
-        embed = discord.Embed(title=T, description=D, color=0xFF0000)
-        embed.set_footer(text=default.footer())
-        await ctx.send(embed=embed, delete_after=10)
+        # embed = discord.Embed(title=T, description=D, color=0xFF0000)
+        # embed.set_footer(text=default.footer())
+        # await ctx.send(embed=embed, delete_after=10)
 
 
 def setup(client):

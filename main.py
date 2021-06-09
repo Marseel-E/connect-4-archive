@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from func import default
 from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
+from func.human import *
 
 load_dotenv('func\.env')
 
@@ -66,24 +67,34 @@ async def on_message(message):
 
     if client.user.mentioned_in(message):
         prefix = await get_prefix(client, message)
-        if not message.content.startswith(str(prefix)): await message.channel.send(f"Current server prefix: `{prefix}`")
-        return
+        if not prefix.startswith('<Encrypted>'):
+            if not message.content.startswith(str(prefix)): await message.channel.send(f"Current server prefix: {HL(prefix)}")
+            return
+        elif message.author.id in default.developer():
+            if not message.content.startswith(str(prefix)): await message.channel.send(f"Current server prefix: {HL(prefix)}")
+            return
+        else:
+            return
     
-    data = await db.Get.user(message.author.id)
-    if data['exp'] >= int((data['level'] * 4.231) * 100):
-        await db.Update.user(message.author.id, 'exp', int(data['exp'] - int((data['level'] * 4.231) * 100)), True)
-        await db.Update.user(message.author.id, 'level', 1)
-        coinsAmt = random.randint(100,1000)
-        await db.Update.user(message.author.id, 'coins', coinsAmt)
-        await message.channel.send(f"{message.author.mention}, :tada: Congratultations :tada: You've reached level `{data['level'] + 1}`!\n:gift: +**Æ**`{coinsAmt}`")
-        return
+    users = await db.Fetch.user_ids()
+    if message.author.id in users:
+        data = await db.Get.user(message.author.id)
+        if data['exp'] >= int((data['level'] * 4.231) * 100):
+            await db.Update.user(message.author.id, 'exp', int(data['exp'] - int((data['level'] * 4.231) * 100)), True)
+            await db.Update.user(message.author.id, 'level', 1)
+            coinsAmt = random.randint(100,1000)
+            await db.Update.user(message.author.id, 'coins', coinsAmt)
+            await message.channel.send(f"{message.author.mention}, :tada: Congratultations :tada: You've reached level {HL(data['level'] + 1)}!\n:gift: +{HL(coinsAmt)}")
+            return
 
     await client.process_commands(message)
 
 
 class Help(commands.HelpCommand):
     def get_command_signature(self, command):
-        return f"`{self.clean_prefix}`**{command.qualified_name}** `{command.signature}`"
+        if (command.signature):
+            return f"{HL(self.clean_prefix)}{B(command.qualified_name)} {HL(command.signature)}"
+        return f"{HL(self.clean_prefix)}{B(command.qualified_name)}"
 
     async def send_bot_help(self, mapping):
         embed = discord.Embed(title="Connect 4 - Help", color=0x5261F8)

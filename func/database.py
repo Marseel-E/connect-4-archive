@@ -70,9 +70,9 @@ class Fetch:
     
     async def items():
         return items
-
-    async def lobby():
-        data = db.child("connect-4").child("lobby").get()
+    
+    async def user_ids():
+        data = db.child("connect-4").child("users").get()
         dataList = []
         dataVal = data.val()
         if dataVal is None:
@@ -83,16 +83,6 @@ class Fetch:
 
 
 class Get:
-
-    async def lobby():
-        data = db.child("connect-4").child("lobby").get()
-        dataDict = {}
-        dataVal = data.val()
-        if dataVal is None:
-            return [0000000000000000]
-        for key, value in dataVal.items():
-            dataDict[key] = [value]
-        return dataDict
 
     async def game(gameId): 
         data = db.child("connect-4").child("games").child(gameId).get()
@@ -197,10 +187,7 @@ class Generate:
 
 class Update:
 
-    async def lobby(userId, rank):
-        db.child("connect-4").child("lobby").child(userId).update({"rank": rank})
-
-    async def game(gameId, key, value, overwrite : typing.Optional[bool] = False):
+    async def game(gameId, key, value, overwrite : typing.Optional[bool]):
         game = await Get.game(gameId)
         if not (game): return False
         if (overwrite):
@@ -208,15 +195,22 @@ class Update:
         else:
             db.child("connect-4").child("games").child(gameId).update({key: int(game[key]) + int(value)})
 
-    async def user(userId, key, value, overwrite : typing.Optional[bool] = False):
+    async def user(userId, key, value, overwrite : typing.Optional[bool]):
         user = await Get.user(userId)
         if not (user): return False
         if (overwrite):
+            try:
+                value = int(value)
+            except ValueError:
+                if value in ['True', 'False']:
+                    value = bool(value)
+                else:
+                    value = str(value)
             db.child("connect-4").child("users").child(userId).update({key: value})
         else:
             db.child("connect-4").child("users").child(userId).update({key: int(user[key]) + int(value)})
     
-    async def guild(guildId, key, value, overwrite : typing.Optional[bool] = False):
+    async def guild(guildId, key, value, overwrite : typing.Optional[bool]):
         guild = await Get.guild(guildId)
         if not (guild): return False
         if (overwrite):

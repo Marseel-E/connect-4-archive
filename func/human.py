@@ -1,3 +1,5 @@
+import typing
+
 def fix(name):
     if name.startswith('<') and name.endswith('>'):
         name = name.replace('<', '')
@@ -17,3 +19,32 @@ def unfix(name):
     if " " in name:
         name = name.replace(' ', '_')
     return name
+
+def HL(value):
+    return f"`{value}`"
+
+def B(value):
+    return f"**{value}**"
+
+def I(value):
+    return f"*{value}*"
+
+def CO(value):
+    return f"~~{value}~~"
+
+def C(value):
+    return f"||{value}||"
+
+def L(value):
+    return f"<{value}>"
+
+def U(value):
+    return f"__{value}__"
+
+def BOX(value, Type : typing.Optional[str]):
+    if (Type):
+        return f"```{Type}\n{value}\n```"    
+    return f"```\n{value}\n```"
+
+def Q(value):
+    return f'"{value}"'
