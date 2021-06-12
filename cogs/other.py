@@ -21,8 +21,8 @@ class Other(commands.Cog):
 
 
     @commands.command(aliases=['c'], help="Displays how the given color would look as an embed color.")
-    async def color(self, ctx, hex):
-        embed = discord.Embed(description = hex, color= int(hex, 16))
+    async def color(self, ctx, Hex):
+        embed = discord.Embed(description = Hex, color= int(Hex, 16))
         embed.set_footer(text=default.footer())
         await ctx.send(embed=embed)
     

@@ -1,6 +1,6 @@
 import typing
 
-def footer(seperate : typing.Optional[bool]):
+def footer(seperate : typing.Optional[bool] = False):
     if (seperate):
         return "| Connect 4 © 2021"
     return "Connect 4 © 2021"
