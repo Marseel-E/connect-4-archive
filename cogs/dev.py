@@ -3,12 +3,31 @@ from discord.ext import commands
 from io import StringIO
 from func import database as db
 from func.human import *
+from func import default
+
+
+def is_dev(ctx):
+    if ctx.author.id in default.developer(): return True
+    return False
 
 
 class Developer(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.session_message = {}
+
+
+    @commands.command()
+    @commands.check(is_dev)
+    async def reset_games(self, ctx):
+        games = db.games
+        db.games.clear()
+        await ctx.send(f"{BOX(games)}\n{BOX(db.games)}")
+    
+
+    @commands.command()
+    @commands.check(is_dev)
+    async def get_games(self, ctx):
+        await ctx.send(BOX(db.games))
 
 
     # Python, Py command
@@ -35,7 +54,7 @@ class Developer(commands.Cog):
 
 
     @commands.command(help="Loads a specific or all cogs.")
-    @commands.is_owner()
+    @commands.check(is_dev)
     async def load(self, ctx, cog : typing.Optional[str]):
         if (cog):
             if cog.endswith(".py"):
@@ -69,7 +88,7 @@ class Developer(commands.Cog):
                                 await ctx.send(f"[{file[:-3]}]: Loaded..\n", delete_after=5)
 
     @commands.command(help="Reloads a specific or all cogs.")
-    @commands.is_owner()
+    @commands.check(is_dev)
     async def reload(self, ctx, cog : typing.Optional[str]):
         if (cog):
             if cog.endswith(".py"):
@@ -102,12 +121,12 @@ class Developer(commands.Cog):
                             await ctx.send(f"[{file[:-3]}]: Reloaded..\n", delete_after=5)
     
     @commands.command(help="Unloads a specific or all cogs.")
-    @commands.is_owner()
+    @commands.check(is_dev)
     async def unload(self, ctx, cog : typing.Optional[str]):
         if (cog):
-            if cog == "dev" or "dev.py": return
             if cog.endswith(".py"):
                 cog = cog[:-3]
+            if cog == "dev": return
             try:
                 self.client.unload_extension(f"cogs.{cog}")
             except Exception as e:
@@ -138,7 +157,7 @@ class Developer(commands.Cog):
     
 
     @commands.command(help="Updates user's database", aliases=['u'])
-    @commands.is_owner()
+    @commands.check(is_dev)
     async def update(self, ctx, member : typing.Optional[discord.User], key : str, value : typing.Union[str, int], overwrite : typing.Optional[bool]):
         user = ctx.author
         if (member):
@@ -151,7 +170,7 @@ class Developer(commands.Cog):
             await ctx.send(f"{ctx.author.mention}, Updated {HL(user)} {HL(key)} by {HL(value)}", delete_after=5)
     
     @commands.command(hidden=True)
-    @commands.is_owner()
+    @commands.check(is_dev)
     @commands.has_permissions(manage_messages=True)
     async def purge(self, ctx, amount = 1):
         if amount >= 10:
@@ -175,7 +194,29 @@ class Developer(commands.Cog):
         await ctx.message.delete()
         await ctx.channel.purge(limit=int(amount))
         await ctx.author.send(f"Deleted {HL(amount)} messages in {HL(ctx.guild.name)} ({HL(ctx.channel.name)})", delete_after=30)
-
+    
+    #! Fix
+    # @commands.group(invoke_without_command=True, aliases=['bl'], help="Blacklists a server/user from the bot.")
+    # @commands.check(is_dev)
+    # async def blacklist(self, ctx, user : discord.Member, remove : typing.Optional[bool] = False):
+    #     if (remove):
+    #         await db.Update.blacklist(user.id, True)
+    #         await ctx.send(f"Removed {user.mention} from the blacklist")
+    #     else:
+    #         await db.Update.blacklist(user.id)
+    #         print(user.id)
+    #         await ctx.send(f"Blacklsited {user.mention}")
+    
+    # @blacklist.command(aliases=['g'])
+    # @commands.check(is_dev)
+    # async def guild(self, ctx, guild : discord.Guild, remove : typing.Optional[bool] = False):
+    #     if (remove):
+    #         await db.Update.blacklist(guild.id, True)
+    #         await ctx.send(f"Removed {HL(guild.name)} from the blacklist")
+    #     else:
+    #         await db.Update.blacklist(guild.id)
+    #         await ctx.send(f"Blacklsited {HL(guild.name)}")
+    
 
 def setup(client):
     client.add_cog(Developer(client))

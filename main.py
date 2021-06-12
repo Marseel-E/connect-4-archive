@@ -18,7 +18,7 @@ async def get_prefix(bot, message):
     except FileNotFoundError:
         return data['prefix']
     else:
-        if message.author.id == default.developer(): return "dev."
+        if message.author.id in default.developer(): return "dev."
         return "<Encrypted>" + str(random.randint(1000000000,9999999999))
 
 # Intents
@@ -37,6 +37,12 @@ client = commands.Bot(command_prefix=get_prefix, case_sensitive=True, intents=in
 async def on_ready():
     print("running...")
     await client.change_presence(status=discord.Status.online, activity=discord.Game(f"connect-4.exe"))
+
+#! Fix
+# Blacklist check
+# @client.check_once
+# def blacklisted(ctx):
+#     return str(ctx.author.id) or str(ctx.guild.id) not in db.Get.blacklist()
 
 
 # Prefix command
@@ -71,7 +77,7 @@ async def on_message(message):
             if not message.content.startswith(str(prefix)): await message.channel.send(f"Current server prefix: {HL(prefix)}")
             return
         elif message.author.id in default.developer():
-            if not message.content.startswith(str(prefix)): await message.channel.send(f"Current server prefix: {HL(prefix)}")
+            if not message.content.startswith(str(prefix)): await message.channel.send(f"Developer prefix: {HL(prefix)}")
             return
         else:
             return
@@ -108,16 +114,6 @@ class Help(commands.HelpCommand):
         channel = self.get_destination()
         await channel.send(embed=embed)
     
-    async def send_command_help(self, command):
-        embed = discord.Embed(title=f"{command.cog_name} - {command.name}", description=self.get_command_signature(command), color=0x5261F8)
-        embed.add_field(name="Description", value=command.help)
-        alias = command.aliases
-        if alias:
-            embed.add_field(name="Aliases", value=", ".join(alias), inline=False)
-
-        channel = self.get_destination()
-        await channel.send(embed=embed)
-    
     async def send_cog_help(self, cog):
         desc = ""
         commands = await self.filter_commands(cog.get_commands())
@@ -137,9 +133,18 @@ class Help(commands.HelpCommand):
         channel = self.get_destination()
         await channel.send(embed=embed)
     
+    async def send_command_help(self, command):
+        embed = discord.Embed(title=f"{command.cog_name} - {command.name}", description=self.get_command_signature(command), color=0x5261F8)
+        embed.add_field(name="Description", value=command.help)
+        alias = command.aliases
+        if alias:
+            embed.add_field(name="Aliases", value=", ".join(alias), inline=False)
 
+        channel = self.get_destination()
+        await channel.send(embed=embed)
+    
     async def send_error_message(self, error):
-        embed = discord.Embed(title="Error", description=str(error), color=0x5261F8)
+        embed = discord.Embed(title="CommandNotFound", description=str(error), color=0xFF0000)
         channel = self.get_destination()
         await channel.send(embed=embed)
 
@@ -150,10 +155,21 @@ if __name__ == ('__main__'):
     for file in os.listdir("cogs"):
         if file.endswith(".py"):
             try:
-                client.load_extension(f"cogs.{file[:-3]}")
-            except Exception as e:
-                print(f"[Main]: Failed to load '{file[:-3]}': {e}\n")
+                os.listdir('C:\\Users\Marsel')
+            except FileNotFoundError:
+                try:
+                    client.load_extension(f"cogs.{file[:-3]}")
+                except Exception as e:
+                    print(f"[Main]: Failed to load '{file[:-3]}': {e}\n")
+                else:
+                    print(f"[{file[:-3]}]: Loaded..\n")
             else:
-                print(f"[{file[:-3]}]: Loaded..\n")
+                if file[:-3] != "events":
+                    try:
+                        client.load_extension(f"cogs.{file[:-3]}")
+                    except Exception as e:
+                        print(f"[Main]: Failed to load '{file[:-3]}': {e}\n")
+                    else:
+                        print(f"[{file[:-3]}]: Loaded..\n")
 
 client.run(os.environ.get("TOKEN"))

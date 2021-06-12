@@ -41,7 +41,7 @@ def L(value):
 def U(value):
     return f"__{value}__"
 
-def BOX(value, Type : typing.Optional[str]):
+def BOX(value, Type : typing.Optional[str] = False):
     if (Type):
         return f"```{Type}\n{value}\n```"    
     return f"```\n{value}\n```"

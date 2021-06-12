@@ -55,10 +55,36 @@ default = {
     }
 }
 
+games = {}
+
+class Lobby:
+
+    data = {}
+
+    async def fetch():
+        return Lobby.data
+
+    async def get(userId):
+        for key, value in Lobby.data.items():
+            if key == userId:
+                return {key: value}
+
+    async def update(userId, key, value, overwrite : typing.Optional[bool] = False):
+        if (overwrite):
+            Lobby.data[userId] = {key: value}
+            return
+        uData = await Lobby.get(userId)
+        Lobby.data[userId] = {key: uData[key] + value}
+    
+    async def delete(userId):
+        Lobby.data.pop(userId)
 
 class Fetch:
 
     async def game_ids():
+        #- test
+        # return games.keys()
+
         data = db.child("connect-4").child("games").get()
         dataList = []
         dataVal = data.val()
@@ -84,7 +110,36 @@ class Fetch:
 
 class Get:
 
+    #! Fix
+    # def blacklist():
+    #     data = db.child("connect-4").child("blacklist").get()
+    #     dataList = []
+    #     dataVal = data.val()
+    #     if dataVal is None:
+    #         return [0000000000000000]
+    #     for key in dataVal:
+    #         dataList.append(key)
+    #     return dataList
+
+    def rank(points):
+        data = {
+            "bronze": 100,
+            "silver": 1000,
+            "gold": 2500,
+            "diamond": 5000,
+            "ruby": 10000,
+        }
+        rank = "Unranked"
+        for key, value in data.items():
+            if points >= value:
+                rank = key
+            else:
+                return rank
+
     async def game(gameId): 
+        #- test
+        # return games[gameId]
+
         data = db.child("connect-4").child("games").child(gameId).get()
         dataVal = data.val()
         dataDict = {}
@@ -187,7 +242,25 @@ class Generate:
 
 class Update:
 
-    async def game(gameId, key, value, overwrite : typing.Optional[bool]):
+    #! Fix
+    # async def blacklist(id, delete : typing.Optional[bool] = False):
+    #     if (delete):
+    #         db.child("connect-4").child("blacklist").child(id).delete()
+    #     else:
+    #         data = Get.blacklist()
+    #         data = data.append(id)
+    #         db.child("connect-4").update({"blacklist": data})
+
+    async def game(gameId, key, value, overwrite : typing.Optional[bool] = False):
+        #- test
+        # if not (games[gameId]): return False
+        # if (overwrite):
+        #     games[gameId][key] = value
+        #     print(f"Update game +overwrite: {(games[gameId][key])}\n")
+        # else:
+        #     games[gameId][key] = games[gameId][key] + value
+        #     print(f"Update game: {(games[gameId][key])}\n")
+
         game = await Get.game(gameId)
         if not (game): return False
         if (overwrite):
@@ -226,6 +299,21 @@ class Update:
 class Create:
 
     async def game(playerOneId, playerTwoId):
+        #- test
+        # gameId = await Generate.game_id()
+        # gameIds = await Fetch.game_ids()
+        # while gameId in gameIds:
+        #     gameId = await Generate.game_id()
+        # gData = {
+        #     "board": [['0']*7]*6,
+        #     "players": [playerOneId, playerTwoId],
+        #     "turn": playerOneId,
+        #     "status": "on-going",
+        #     "id": gameId
+        # }
+        # games.update({gameId: gData})
+        # return games[gameId]
+
         gameId = await Generate.game_id()
         gameIds = await Fetch.game_ids()
         while gameId in gameIds:
@@ -242,10 +330,10 @@ class Create:
 class Delete:
 
     async def game(gameId):
+        #- test
+        # games.pop(gameId)
+
         db.child("connect-4").child("games").child(gameId).remove()
-    
-    async def lobby(userId):
-        db.child("connect-4").child("lobby").child(userId).remove()
     
     async def user(userId):
         db.child("connect-4").child("users").child(userId).remove()

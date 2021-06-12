@@ -337,6 +337,35 @@ class Game(commands.Cog):
         # Game time
         timeSpent = datetime.utcnow() - startTime
         await ctx.send(f"Time spent: {humanize.precisedelta(timeSpent)}", delete_after=10)
+    
+    @commands.group(invoke_without_command=True)
+    async def lobby(self, ctx):
+        lData = await db.Lobby.fetch()
+        embed = discord.Embed(title="Connect 4 - Lobby", color = 0x5261F8)
+        for key, value in lData.items():
+            user = await self.client.fetch_user(key)
+            embed.add_field(name=user.name, value=f"Rank: {HL(value['rank'])}", inline=False)
+        embed.set_footer(text= f"Players: {len(lData)} {default.footer(True)}")
+        await ctx.send(embed=embed)
+    
+    @lobby.command()
+    async def join(self, ctx):
+        lData = await db.Lobby.fetch()
+        if ctx.author.id in lData.keys():
+            await ctx.send(f"{ctx.author.mention}, You're already in lobby. (In-lobby: {len(lData)})")
+            return
+        uData = await db.Get.user(ctx.author.id)
+        await db.Lobby.update(ctx.author.id, "rank", db.Get.rank(uData['points']), True)
+        await ctx.send(f"{ctx.author.mention}, You've joined the lobby, Your game will be started when a worthy opponent is found. (In-lobby: {len(lData)})")
+    
+    @lobby.command()
+    async def leave(self, ctx):
+        lData = await db.Lobby.fetch()
+        if ctx.author.id not in lData.keys():
+            await ctx.send(f"{ctx.author.mention}, You're not in lobby.")
+            return
+        await db.Lobby.delete(ctx.author.id)
+        await ctx.send(f"{ctx.author.mention}, You've left the lobby.")
 
 
     @commands.command(aliases=['inv'], help="Displays a specific member's or the user's inventory.")

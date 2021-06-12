@@ -1,7 +1,12 @@
 import discord, humanize
 from discord.ext import commands
 from func import default
+from func import database as db
 
+
+def is_not_dev(ctx):
+    if ctx.author.id not in default.developer(): return True
+    return False
 
 class Handler(commands.Cog):
     def __init__(self, client):
@@ -50,13 +55,13 @@ class Handler(commands.Cog):
             T = "ChannelNotReadable"
             D = f"`{error.argument}` is not readable."
         
-        # else:
-        #     print(error)
-        #     return
+        else:
+            print(error)
+            return
 
-        # embed = discord.Embed(title=T, description=D, color=0xFF0000)
-        # embed.set_footer(text=default.footer())
-        # await ctx.send(embed=embed, delete_after=10)
+        embed = discord.Embed(title=T, description=D, color=0xFF0000)
+        embed.set_footer(text=default.footer())
+        await ctx.send(embed=embed, delete_after=10)
 
 
 def setup(client):
