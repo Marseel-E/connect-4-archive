@@ -11,14 +11,6 @@ class Developer(commands.Cog):
         self.session_message = {}
 
 
-    @commands.command(aliases=['bg'], help="Shows how a specific game background would look.")
-    @commands.check(is_dev)
-    async def background(self, ctx, background):
-        embed = discord.Embed(title = "Connect 4", description=f"Respond with {HL('1 - 7')} to play your move.\n{('{background} ' * 7 + '\n')*6}", color = 0xF0F0F0)
-        embed.set_footer(text=f"ID: 0000000000000000 {default.footer(True)}")
-        await ctx.send(embed=embed, delete_after=30)
-
-
     # Python, Py command
     @commands.command(help="Evaluates Python code.")
     @commands.is_owner()
