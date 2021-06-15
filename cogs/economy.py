@@ -15,11 +15,12 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 160)
     async def rob(self, ctx, member : discord.Member):
         mData = await db.Get.user(member.id)
-        if mData['cash'] <= 1000: await ctx.send(f"{ctx.author.mention}, {member} is too poor to rob.", delete_after=5)
+        if mData['cash'] <= 1000: embed = default.Embed.error(None, f"{ctx.author.mention}, {member} is too poor to rob."); await ctx.send(embed=embed, delete_after=5)
         amount = random.randint(1001, int(mData['cash']))
         await db.Update.user(ctx.author.id, 'cash', amount)
         await db.Update.user(member.id, 'cash', int(mData['cash']) - amount, True)
-        await ctx.send(f"{ctx.author.mention}, You've stolen :dollar: {amount} from {member}", delete_after=30)
+        embed = default.Embed.success(None, f"{ctx.author.mention}, You've stolen :dollar: {amount} from {member}")
+        await ctx.send(embed=embed, delete_after=30)
 
 
     @commands.command(aliases=['b', 'bal'], help="Displays your balance.", hidden=True)
@@ -28,9 +29,7 @@ class Economy(commands.Cog):
         if (member):
             user = member
         data = await db.Get.user(user.id)
-        embed = discord.Embed(description=f":dollar: Wallet: {data['cash']}\n:credit_card: Bank: {data['bank']}", color = 0xF0F0F0)
-        embed.set_author(name=user.name, icon_url=user.avatar_url)
-        embed.set_footer(text=default.footer())
+        embed = default.Embed.custom(None, f":dollar: Wallet: {data['cash']}\n:credit_card: Bank: {data['bank']}", "5261f8", None, user)
         msg = await ctx.send(embed=embed, components=[
                 [Button(style=ButtonStyle.red, label="Deposit"),
                 Button(style=ButtonStyle.green, label="Withdraw")],
@@ -49,7 +48,8 @@ class Economy(commands.Cog):
             await res.respond(type=6)
             if res.component.label.lower() == "deposit":
                 await msg.delete()
-                msg = await ctx.send(f"{user.mention}, How much would you like to deposit? (:dollar: {data['cash']})")
+                embed = default.Embed.minimal(None, f"{user.mention}, How much would you like to deposit? (:dollar: {data['cash']})")
+                msg = await ctx.send(embed=embed)
                 
                 while True:
                     def check(m):
@@ -67,14 +67,16 @@ class Economy(commands.Cog):
                             await db.Update.user(user.id, "cash", amount, True)
                             await db.Update.user(user.id, "bank", m.content)
                             await msg.delete()
-                            await ctx.send(f"{user.mention}, Deposited :dollar: {m.content} to your bank.", delete_after=5)
+                            embed = default.Embed.success(None, f"{user.mention}, Deposited :dollar: {m.content} to your bank.")
+                            await ctx.send(embed=embed, delete_after=5)
                             break; return
                         else:
                             continue
 
             elif res.component.label.lower() == "withdraw":
                 await msg.delete()
-                msg = await ctx.send(f"{user.mention}, How much would you like to withdraw? (:credit_card: {data['bank']})")
+                embed = default.Embed.minimal(None, f"{user.mention}, How much would you like to withdraw? (:credit_card: {data['bank']})")
+                msg = await ctx.send(embed=embed)
                 
                 while True:
                     def check(m):
@@ -92,7 +94,8 @@ class Economy(commands.Cog):
                             await db.Update.user(user.id, "bank", amount, True)
                             await db.Update.user(user.id, "cash", m.content)
                             await msg.delete()
-                            await ctx.send(content=f"{user.mention}, Withdrew :dollar: {m.content} from your bank.", delete_after=5)
+                            embed = default.Embed.success(None, f"{user.mention}, Withdrew :dollar: {m.content} from your bank.")
+                            await ctx.send(embed=embed, delete_after=5)
                             break; return
                         else:
                             continue
@@ -109,8 +112,7 @@ class Economy(commands.Cog):
         if (category): pass
         
         # Main embed
-        embed = discord.Embed(title="Connect 4 - Shop", description= ":blue_circle: Discs \n:white_circle: Backgrounds \n:orange_square: Embed colors", color = 0xFFD700)
-        embed.set_footer(text= f"{default.footer()}")
+        embed = default.Embed.minimal("Connect 4 - Shop", ":blue_circle: Discs \n:white_circle: Backgrounds \n:orange_square: Embed colors")
         msg = await ctx.send(embed=embed)
         
         # Reactions
@@ -137,8 +139,7 @@ class Economy(commands.Cog):
             desc = ""
             for name, value in data['discs'].items():
                 desc += f"{value['icon']} {fix(name)}: **Æ**`{value['price']}`\n"
-            embed = discord.Embed(title= "Connect 4 - Shop", description= desc, color = 0xFFD700)
-            embed.set_footer(text= f"{default.footer()}")
+            embed = default.Embed.minimal("Connect 4 - Shop", desc)
             await msg.delete()
             msg = await ctx.send(embed=embed)
 
@@ -186,13 +187,16 @@ class Economy(commands.Cog):
                         if userData['coins'] >= data[child][msg]['price']:
                             await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
                             await db.Update.inventory(ctx.author.id, child, msg)
-                            await ctx.send(f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`", delete_after=5)
+                            embed = default.Embed.success(None, f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
                             break
                         else:
-                            await ctx.send(f"You don't have Æ`{data[child][msg]['price']}`", delete_after=5)
+                            embed = default.Embed.error(None, f"You don't have Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
                     
                     else:
-                        await ctx.send("Choose a valid item", delete_after=5)
+                        embed = default.Embed.minimal(None, "Choose a valid item")
+                        await ctx.send(embed=embed, delete_after=5)
             
             # Exit
             if reaction.emoji == "❌": await msg.delete(); return
@@ -204,8 +208,7 @@ class Economy(commands.Cog):
             desc = ""
             for name, value in data['backgrounds'].items():
                 desc += f"{value['icon']} {fix(name)}: **Æ**`{value['price']}`\n"
-            embed = discord.Embed(title= "Connect 4 - Shop", description= desc, color = 0xFFD700)
-            embed.set_footer(text= f"{default.footer()}")
+            embed = default.Embed.minimal("Connect 4 - Shop", desc)
             await msg.delete()
             msg = await ctx.send(embed=embed)
 
@@ -254,13 +257,16 @@ class Economy(commands.Cog):
                         if userData['coins'] >= data[child][msg]['price']:
                             await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
                             await db.Update.inventory(ctx.author.id, child, msg)
-                            await ctx.send(f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`", delete_after=5)
+                            embed = default.Embed.success(None, f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
                             break
                         else:
-                            await ctx.send(f"You don't have Æ`{data[child][msg]['price']}`", delete_after=5)
+                            embed = default.Embed.error(None, f"You don't have Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
                     
                     else:
-                        await ctx.send("Choose a valid item", delete_after=5)
+                        embed = default.Embed.minimal(None, "Choose a valid item")
+                        await ctx.send(embed=embed, delete_after=5)
             
             # Exit
             if reaction.emoji == "❌": await msg.delete(); return
@@ -272,8 +278,7 @@ class Economy(commands.Cog):
             desc = ""
             for name, value in data['embedColors'].items():
                 desc += f"`{value['icon']}` {fix(name)}: **Æ**`{value['price']}`\n"
-            embed = discord.Embed(title= "Connect 4 - Shop", description= desc, color = 0xFFD700)
-            embed.set_footer(text= f"{default.footer()}")
+            embed = default.Embed.minimal("Connect 4 - Shop", desc)
             await msg.delete()
             msg = await ctx.send(embed=embed)
 
@@ -321,13 +326,16 @@ class Economy(commands.Cog):
                         if userData['coins'] >= data[child][msg]['price']:
                             await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
                             await db.Update.inventory(ctx.author.id, child, msg)
-                            await ctx.send(f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`", delete_after=5)
+                            embed = default.Embed.success(None, f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
                             break
                         else:
-                            await ctx.send(f"You don't have Æ`{data[child][msg]['price']}`", delete_after=5)
+                            embed = default.Embed.error(None, f"You don't have Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
                     
                     else:
-                        await ctx.send("Choose a valid item", delete_after=5)
+                        embed = default.Embed.minimal(None, "Choose a valid item")
+                        await ctx.send(embed=embed, delete_after=5)
             
             # Exit
             if reaction.emoji == "❌": await msg.delete(); return

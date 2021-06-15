@@ -59,8 +59,7 @@ class Handler(commands.Cog):
             print(error)
             return
 
-        embed = discord.Embed(title=T, description=D, color=0xFF0000)
-        embed.set_footer(text=default.footer())
+        embed = default.Embed.error(T, D)
         await ctx.send(embed=embed, delete_after=10)
 
 

@@ -1,9 +1,10 @@
-import discord, sys, traceback, typing, os, asyncio
+import discord, sys, traceback, typing, os, asyncio, humanize
 from discord.ext import commands
 from io import StringIO
 from func import database as db
 from func.human import *
 from func import default
+from datetime import datetime, timedelta
 
 
 def is_dev(ctx):
@@ -49,7 +50,7 @@ class Developer(commands.Cog):
         else:
             msg = str(redirected_output.getvalue())
             for i in range(0, len(msg), 2048):
-                embed = discord.Embed(title=f"Input:\n{BOX(cmd, 'py')}", description=f"Output:\n{HL(msg[i:i+2000])}", color = 0xF0F0F0)
+                embed = default.Embed.minimal(None, f"Input:\n{BOX(cmd, 'py')}\nOutput:\n{BOX(msg[i:i+2000], 'cmd')}", "5261F8")
                 await ctx.send(embed=embed)
 
 
@@ -164,17 +165,20 @@ class Developer(commands.Cog):
             user = member
         if (overwrite):
             await db.Update.user(user.id, key, value, overwrite)
-            await ctx.send(f"{ctx.author.mention}, Updated {HL(user)} {HL(key)} to {HL(value)}", delete_after=5)
+            embed = default.Embed.success(None, f"{ctx.author.mention}, Updated {HL(user)} {HL(key)} to {HL(value)}")
+            await ctx.send(embed=embed, delete_after=5)
         else:
             await db.Update.user(user.id, key, value, overwrite)
-            await ctx.send(f"{ctx.author.mention}, Updated {HL(user)} {HL(key)} by {HL(value)}", delete_after=5)
+            embed = default.Embed.success(None, f"{ctx.author.mention}, Updated {HL(user)} {HL(key)} by {HL(value)}")
+            await ctx.send(embed=embed, delete_after=5)
     
     @commands.command(hidden=True)
     @commands.check(is_dev)
     @commands.has_permissions(manage_messages=True)
     async def purge(self, ctx, amount = 1):
         if amount >= 10:
-            msg = await ctx.send(f"Are you sure you want to delete {HL(amount)} messages?")
+            embed = default.Embed.minimal(None, f"Are you sure you want to delete {HL(amount)} messages?", "5261f8")
+            msg = await ctx.send(embed=embed)
             await msg.add_reaction('✅')
 
             def check(reaction, user):
@@ -193,12 +197,16 @@ class Developer(commands.Cog):
 
         await ctx.message.delete()
         await ctx.channel.purge(limit=int(amount))
-        await ctx.author.send(f"Deleted {HL(amount)} messages in {HL(ctx.guild.name)} ({HL(ctx.channel.name)})", delete_after=30)
+        embed = default.Embed.minimal(None, f"Deleted {HL(amount)} messages in {HL(ctx.guild.name)} ({HL(ctx.channel.name)})", "5261f8")
+        await ctx.author.send(embed=embed, delete_after=30)
+
     
     #! Fix
-    # @commands.group(invoke_without_command=True, aliases=['bl'], help="Blacklists a server/user from the bot.")
-    # @commands.check(is_dev)
-    # async def blacklist(self, ctx, user : discord.Member, remove : typing.Optional[bool] = False):
+    @commands.group(hidden=True, invoke_without_command=True, aliases=['bl'], help="Blacklists a server/user from the bot.")
+    @commands.check(is_dev)
+    async def blacklist(self, ctx, user : discord.Member, remove : typing.Optional[bool] = False):
+        embed = default.Embed.maintenance()
+        await ctx.send(embed=embed)
     #     if (remove):
     #         await db.Update.blacklist(user.id, True)
     #         await ctx.send(f"Removed {user.mention} from the blacklist")
@@ -207,16 +215,17 @@ class Developer(commands.Cog):
     #         print(user.id)
     #         await ctx.send(f"Blacklsited {user.mention}")
     
-    # @blacklist.command(aliases=['g'])
-    # @commands.check(is_dev)
-    # async def guild(self, ctx, guild : discord.Guild, remove : typing.Optional[bool] = False):
+    @blacklist.command(aliases=['g'])
+    @commands.check(is_dev)
+    async def guild(self, ctx, guild : discord.Guild, remove : typing.Optional[bool] = False):
+        embed = default.Embed.maintenance()
+        await ctx.send(embed=embed)
     #     if (remove):
     #         await db.Update.blacklist(guild.id, True)
     #         await ctx.send(f"Removed {HL(guild.name)} from the blacklist")
     #     else:
     #         await db.Update.blacklist(guild.id)
     #         await ctx.send(f"Blacklsited {HL(guild.name)}")
-    
 
 def setup(client):
     client.add_cog(Developer(client))

@@ -52,18 +52,23 @@ async def prefix(ctx, new_prefix : typing.Optional[str]):
     if (new_prefix):
         if len(new_prefix) > 3 or len(new_prefix) < 1: await ctx.send(f"Your prefix must be `1`-`3` characters long"); return
         await db.Update.guild(ctx.guild.id, "prefix", new_prefix, True)
-        await ctx.send(f"Your prefix has been updated!\nNew prefix: `{new_prefix}`")
+        embed = default.Embed.success(None, f"Your prefix has been updated!", None, None, f"New prefix:\s {HL(new_prefix)}")
+        await ctx.send(embed=embed, delete_after=30)
     else:
         data = db.Get.guild(ctx.guild.id)
-        await ctx.send(f"Current guild prefix: `{data['prefix']}`")
+        embed = default.Embed.minimal(None, f"Current guild prefix: {HL(data['prefix'])}")
+        await ctx.send(embed=embed)
     
 
 # Prefix error handler
 @prefix.error
 async def prefix_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send(f'{ctx.author.mention}, This command requires the "`Manage Server`" permission.')
-    else: await ctx.send(f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/WZw6BV5YCP)")
+        embed = default.Embed.error("MissingPermissions", f'{ctx.author.mention}, This command requires the "`Manage Server`" permission.')
+        await ctx.send(embed=embed)
+    else:
+        embed = default.Embed.error("UnknownError", f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/WZw6BV5YCP)")
+        await ctx.send(embed=embed)
 
 
 # On message event
@@ -74,10 +79,14 @@ async def on_message(message):
     if client.user.mentioned_in(message):
         prefix = await get_prefix(client, message)
         if not prefix.startswith('<Encrypted>'):
-            if not message.content.startswith(str(prefix)): await message.channel.send(f"Current server prefix: {HL(prefix)}")
+            if not message.content.startswith(str(prefix)):
+                embed = default.Embed.minimal(None, f"Current server prefix: {HL(prefix)}")
+                await message.channel.send(embed=embed)
             return
         elif message.author.id in default.developer():
-            if not message.content.startswith(str(prefix)): await message.channel.send(f"Developer prefix: {HL(prefix)}")
+            if not message.content.startswith(str(prefix)):
+                embed = default.Embed.minimal(None, f"Developer prefix: {HL(prefix)}")
+                await message.channel.send(embed=embed)
             return
         else:
             return
@@ -90,7 +99,8 @@ async def on_message(message):
             await db.Update.user(message.author.id, 'level', 1)
             coinsAmt = random.randint(100,1000)
             await db.Update.user(message.author.id, 'coins', coinsAmt)
-            await message.channel.send(f"{message.author.mention}, :tada: Congratultations :tada: You've reached level {HL(data['level'] + 1)}!\n:gift: +{HL(coinsAmt)} Coins!")
+            embed = default.Embed.success(None, f"{message.author.mention}, :tada: Congratultations :tada: You've reached level {HL(data['level'] + 1)}!\n:gift: +{HL(coinsAmt)} Coins!")
+            await message.channel.send(embed=embed)
             return
 
     await client.process_commands(message)
