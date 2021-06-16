@@ -102,7 +102,7 @@ class Help(commands.HelpCommand):
         return f"{HL(self.clean_prefix)}{B(command.qualified_name)}"
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title="Connect 4 - Help", color=0x5261F8)
+        embed = default.Embed.minimal("Connect 4 - Help", "<> = Required\n[] = Optional", "5261F8")
         for cog, commands in mapping.items():
             commands = await self.filter_commands(commands)
             command_signatures = [self.get_command_signature(c) for c in commands]
@@ -118,12 +118,12 @@ class Help(commands.HelpCommand):
         commands = await self.filter_commands(cog.get_commands())
         for cmd in commands:
             desc += f"{self.get_command_signature(cmd)}\n"
-        embed = discord.Embed(title=f"Help - {cog.qualified_name}", description=desc, color=0x5261F8)
+        embed = default.Embed.minimal(f"Help - {cog.qualified_name}", f"() = Required\n[] = Optional\n{desc}", "5261F8")
         channel = self.get_destination()
         await channel.send(embed=embed)
     
     async def send_group_help(self, group):
-        embed = discord.Embed(title=f"{group.cog_name} - {group.name}", description=self.get_command_signature(group), color=0x5261F8)
+        embed = default.Embed.minimal(f"{group.cog_name} - {group.name}", f"{self.get_command_signature(group)}", "5261F8")
         embed.add_field(name="Description", value=group.help)
         alias = group.aliases
         if alias:
@@ -133,7 +133,7 @@ class Help(commands.HelpCommand):
         await channel.send(embed=embed)
     
     async def send_command_help(self, command):
-        embed = discord.Embed(title=f"{command.cog_name} - {command.name}", description=self.get_command_signature(command), color=0x5261F8)
+        embed = default.Embed.minimal(f"{command.cog_name} - {command.name}", f"{self.get_command_signature(command)}", "5261F8")
         embed.add_field(name="Description", value=command.help)
         alias = command.aliases
         if alias:
@@ -143,7 +143,7 @@ class Help(commands.HelpCommand):
         await channel.send(embed=embed)
     
     async def send_error_message(self, error):
-        embed = discord.Embed(title="CommandNotFound", description=str(error), color=0xFF0000)
+        embed = default.Embed.error("CommandNotFound", str(error))
         channel = self.get_destination()
         await channel.send(embed=embed)
 
