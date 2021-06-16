@@ -82,17 +82,7 @@ class Lobby:
 class Fetch:
 
     async def game_ids():
-        #- test
         return games.keys()
-
-        # data = db.child("connect-4").child("games").get()
-        # dataList = []
-        # dataVal = data.val()
-        # if dataVal is None:
-        #     return [0000000000000000]
-        # for key, value in dataVal.items():
-        #     dataList.append(key)
-        # return dataList
     
     async def items():
         return items
@@ -137,17 +127,7 @@ class Get:
                 return rank
 
     async def game(gameId): 
-        #- test
         return games[gameId]
-
-        # data = db.child("connect-4").child("games").child(gameId).get()
-        # dataVal = data.val()
-        # dataDict = {}
-        # if dataVal is None:
-        #     return False
-        # for key, value in dataVal.items():
-        #     dataDict[key] = value
-        # return dataDict    
 
     async def user(userId): 
         data = db.child("connect-4").child("users").child(userId).get()
@@ -252,7 +232,6 @@ class Update:
     #         db.child("connect-4").update({"blacklist": data})
 
     async def game(gameId, key, value, overwrite : typing.Optional[bool] = False):
-        #- test
         if not (games[gameId]): return False
         if (overwrite):
             games[gameId][key] = value
@@ -260,13 +239,6 @@ class Update:
         else:
             games[gameId][key] = games[gameId][key] + value
             print(f"Update game: {(games[gameId][key])}\n")
-
-        # game = await Get.game(gameId)
-        # if not (game): return False
-        # if (overwrite):
-        #     db.child("connect-4").child("games").child(gameId).update({key: value})
-        # else:
-        #     db.child("connect-4").child("games").child(gameId).update({key: int(game[key]) + int(value)})
 
     async def user(userId, key, value, overwrite : typing.Optional[bool] = False):
         user = await Get.user(userId)
@@ -299,7 +271,6 @@ class Update:
 class Create:
 
     async def game(playerOneId, playerTwoId):
-        #- test
         gameId = await Generate.game_id()
         gameIds = await Fetch.game_ids()
         while gameId in gameIds:
@@ -314,26 +285,11 @@ class Create:
         games.update({gameId: gData})
         return games[gameId]
 
-        # gameId = await Generate.game_id()
-        # gameIds = await Fetch.game_ids()
-        # while gameId in gameIds:
-        #     gameId = await Generate.game_id()
-        # db.child("connect-4").child("games").child(gameId).update({"board": [['0']*7]*6})
-        # await Update.game(gameId, "players", [playerOneId, playerTwoId], True)
-        # await Update.game(gameId, "turn", playerOneId, True)
-        # await Update.game(gameId, "status", "on-going", True)
-        # await Update.game(gameId, "id", gameId, True)
-        # game = await Get.game(gameId)
-        # return game
-
 
 class Delete:
 
     async def game(gameId):
-        #- test
         games.pop(gameId)
-
-        # db.child("connect-4").child("games").child(gameId).remove()
     
     async def user(userId):
         db.child("connect-4").child("users").child(userId).remove()

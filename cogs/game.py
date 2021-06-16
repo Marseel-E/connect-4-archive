@@ -466,7 +466,7 @@ class Game(commands.Cog):
         embed.set_author(name = user)
         embed.set_thumbnail(url = user.avatar_url)
         embed.add_field(name="Level:", value=data['level'], inline=True)
-        embed.add_field(name="Rank:", value="Soon!", inline=True) #- Make rank
+        embed.add_field(name="Rank:", value=db.Get.rank(int(data['points'])), inline=True) #- Make rank
         embed.add_field(name="Coins:", value=f"{HL(data['coins'])}", inline=True)
         embed.add_field(name=f"Games played: ({HL(int(data['wins'] + data['draws'] + data['loses']))})", value=f"{B(data['wins'])} Wins | {B(data['draws'])} Draws | {B(data['loses'])} Loses", inline=False)
         embed.add_field(name="Primary disc:", value=f"{data['primaryDisc']} {HL(fix(data['primaryDisc']))}", inline=True)

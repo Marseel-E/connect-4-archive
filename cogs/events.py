@@ -56,11 +56,12 @@ class Handler(commands.Cog):
             D = f"`{error.argument}` is not readable."
         
         else:
-            print(error)
-            return
+            T = "UnknownError"
+            D = f"Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/JgR6XywMwZ)"
 
         embed = default.Embed.error(T, D)
         await ctx.send(embed=embed, delete_after=10)
+        print(error)
 
 
 def setup(client):

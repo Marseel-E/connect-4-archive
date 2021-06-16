@@ -55,19 +55,8 @@ async def prefix(ctx, new_prefix : typing.Optional[str]):
         embed = default.Embed.success(None, f"Your prefix has been updated!", None, None, f"New prefix:\s {HL(new_prefix)}")
         await ctx.send(embed=embed, delete_after=30)
     else:
-        data = db.Get.guild(ctx.guild.id)
+        data = await db.Get.guild(ctx.guild.id)
         embed = default.Embed.minimal(None, f"Current guild prefix: {HL(data['prefix'])}")
-        await ctx.send(embed=embed)
-    
-
-# Prefix error handler
-@prefix.error
-async def prefix_error(ctx, error):
-    if isinstance(error, commands.MissingPermissions):
-        embed = default.Embed.error("MissingPermissions", f'{ctx.author.mention}, This command requires the "`Manage Server`" permission.')
-        await ctx.send(embed=embed)
-    else:
-        embed = default.Embed.error("UnknownError", f"{ctx.author.mention}, Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/WZw6BV5YCP)")
         await ctx.send(embed=embed)
 
 
