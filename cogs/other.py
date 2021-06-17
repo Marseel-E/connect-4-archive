@@ -93,6 +93,13 @@ class Other(commands.Cog):
                         page -= 1; break
                     if str(reaction.emoji) == '➡️' and page+1 != len(pages):
                         page += 1; break
+    
+
+    @commands.command(aliases=['bug', 'report', 'br'], help="Report a bug/error in the bot.")
+    async def bug_report(self, ctx, *, description : str):
+        embed = default.Embed.custom("Bug report", description, default.Color.red, None, None, f"By: {ctx.author}")
+        channel = await self.client.fetch_channel(855139711554289674)
+        await channel.send(embed=embed)
 
 
 def setup(client):

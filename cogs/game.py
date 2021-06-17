@@ -1,4 +1,5 @@
 import discord, asyncio, humanize, typing, random
+from discord.embeds import Embed
 from discord.ext import commands
 from func import database as db
 from func import default
@@ -340,32 +341,42 @@ class Game(commands.Cog):
     
     @commands.group(invoke_without_command=True)
     async def lobby(self, ctx):
+        embed = default.Embed.maintenance()
+        await ctx.send(embed=embed); return
         lData = await db.Lobby.fetch()
-        embed = discord.Embed(title="Connect 4 - Lobby", color = 0x5261F8)
+        fields = []
         for key, value in lData.items():
             user = await self.client.fetch_user(key)
-            embed.add_field(name=user.name, value=f"Rank: {HL(value['rank'])}", inline=False)
-        embed.set_footer(text= f"Players: {len(lData)} {default.footer(True)}")
+            fields.append(f"{user.name}\s Rank: {HL(value['rank'])}\s False")
+        embed = default.Embed.custom("Connect 4 - Lobby", None, default.Color.blurple, fields, None, f"Players: {len(lData)}")
         await ctx.send(embed=embed)
     
     @lobby.command()
     async def join(self, ctx):
+        embed = default.Embed.maintenance()
+        await ctx.send(embed=embed); return
         lData = await db.Lobby.fetch()
         if ctx.author.id in lData.keys():
-            await ctx.send(f"{ctx.author.mention}, You're already in lobby. (In-lobby: {len(lData)})")
+            embed = default.Embed.error("InLobby", f"{ctx.author.mention}, You're already in lobby. (In-lobby: {len(lData)})")
+            await ctx.send(embed=embed)
             return
         uData = await db.Get.user(ctx.author.id)
         await db.Lobby.update(ctx.author.id, "rank", db.Get.rank(uData['points']), True)
-        await ctx.send(f"{ctx.author.mention}, You've joined the lobby, Your game will be started when a worthy opponent is found. (In-lobby: {len(lData)})")
+        embed = default.Embed.success("Joined", f"{ctx.author.mention}, You've joined the lobby, Your game will be started when a worthy opponent is found. (In-lobby: {len(lData)})")
+        await ctx.send(embed=embed)
     
     @lobby.command()
     async def leave(self, ctx):
+        embed = default.Embed.maintenance()
+        await ctx.send(embed=embed); return
         lData = await db.Lobby.fetch()
         if ctx.author.id not in lData.keys():
-            await ctx.send(f"{ctx.author.mention}, You're not in lobby.")
+            embed = default.Embed.error("NotInLobby", f"{ctx.author.mention}, You're not in lobby.")
+            await ctx.send(embed=embed)
             return
         await db.Lobby.delete(ctx.author.id)
-        await ctx.send(f"{ctx.author.mention}, You've left the lobby.")
+        embed = default.Embed.success("Left", f"{ctx.author.mention}, You've left the lobby.")
+        await ctx.send(embed=embed)
 
 
     @commands.command(aliases=['inv'], help="Displays a specific member's or the user's inventory.")

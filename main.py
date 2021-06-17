@@ -112,7 +112,7 @@ class Help(commands.HelpCommand):
 
         channel = self.get_destination()
         await channel.send(embed=embed)
-    
+
     async def send_cog_help(self, cog):
         desc = ""
         commands = await self.filter_commands(cog.get_commands())
@@ -131,7 +131,7 @@ class Help(commands.HelpCommand):
 
         channel = self.get_destination()
         await channel.send(embed=embed)
-    
+
     async def send_command_help(self, command):
         embed = default.Embed.minimal(f"{command.cog_name} - {command.name}", f"{self.get_command_signature(command)}", "5261F8")
         embed.add_field(name="Description", value=command.help)
