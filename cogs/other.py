@@ -97,9 +97,44 @@ class Other(commands.Cog):
 
     @commands.command(aliases=['bug', 'report', 'br'], help="Report a bug/error in the bot.")
     async def bug_report(self, ctx, *, description : str):
-        embed = default.Embed.custom("Bug report", description, default.Color.red, None, None, f"By: {ctx.author}")
+        embed = default.Embed.custom("Bug report", description, default.Color.red, None, None, f"ID: {ctx.author.id}")
         channel = await self.client.fetch_channel(855139711554289674)
         await channel.send(embed=embed)
+    
+
+    @commands.command(aliases=['perms'], help="Shows the permissions the bot requires and their current status.")
+    @commands.has_permissions(manage_roles=True)
+    async def permissions(self, ctx):
+        required = ""
+        optional = ""
+        other = ""
+
+        rPerms = ["add_reactions", "embed_links", "external_emojis", "read_messages", "use_external_emojis", "view_channel", "send_messages"]
+        oPerms = ["attach_files", "change_nickname", "create_instant_invite", "manage_messages", "read_message_history"]
+        perms = list(ctx.guild.me.guild_permissions)
+
+        for perm in perms:
+            if (perm[1]):
+                if perm[0] in rPerms:
+                    required += f"{HL(perm[0])}\n"
+                elif perm[0] in oPerms:
+                    optional += f"{HL(perm[0])}\n"
+                else:
+                    other += f"{HL(perm[0])}\n"
+            else:
+                if perm[0] in rPerms:
+                    required += f":warning: {HL(perm[0])} {I('(Missing)')}\n"
+                elif perm[0] in oPerms:
+                    optional += f":warning: {HL(perm[0])} {I('(Missing)')}\n"
+                else:
+                    pass
+
+        fields = [f":white_check_mark: Required:\s {required}\s False", f":ballot_box_with_check: Optional:\s {optional}\s False"]
+        if other != "":
+            fields.append(f":no_entry_sign: Not required:\s {other}\s False")
+
+        embed = default.Embed.custom("Connect 4 - Permissions", None, default.Color.blurple, fields)
+        await ctx.send(embed=embed)
 
 
 def setup(client):
