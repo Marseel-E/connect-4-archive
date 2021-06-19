@@ -2,6 +2,7 @@ import discord, asyncio
 from discord.ext import commands
 from func import default
 from func.human import *
+from func import database as db
 
 
 class Other(commands.Cog):
@@ -39,6 +40,7 @@ class Other(commands.Cog):
     @commands.group(invoke_without_command=True, help="Shows the bot's stats.")
     async def stats(self, ctx):
         owner = await self.client.fetch_user(470866478720090114)
+        users = await db.Fetch.user_ids()
         devs = ""
         for i in default.developer():
             if i == 470866478720090114: pass
@@ -50,7 +52,7 @@ class Other(commands.Cog):
             f"Creator:\s {owner.mention}\s True",
             f"Developers:\s {devs}\s False",
             f"Guilds:\s {HL(len(self.client.guilds))}\s True",
-            f"Users:\s {HL(len([i for i in self.client.users if not (i.bot)]))}\s True",
+            f"Users:\s {HL(len(users))}\s True",
             f"Commands:\s {HL(len(self.client.commands))}\s False",
             f"Emojis: ({HL(len(self.client.emojis))})\s {''.join(emojis[:30])}\s False",
         ]
@@ -75,6 +77,46 @@ class Other(commands.Cog):
                     text += f"{i}. {guild.name} ({HL(guild.member_count)})\n"
         while True:
             embed = default.Embed.custom(f"Connect 4 - Guilds ({HL(len(self.client.guilds))})", pages[page], "5261f8", None, None, f"Page: {page+1} / {len(pages)}")
+            msg = await ctx.send(embed=embed)
+            await msg.add_reaction('⬅️')
+            await msg.add_reaction('➡️')
+
+            while True:
+                def check(reaction, user):
+                    return str(reaction.emoji) in ['⬅️', '➡️'] and user == ctx.author
+                
+                try:
+                    reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=30)
+                except asyncio.TimeoutError:
+                    await msg.delete()
+                    break; break; return
+                else:
+                    if str(reaction.emoji) == '⬅️' and page != 0:
+                        page -= 1; break
+                    if str(reaction.emoji) == '➡️' and page+1 != len(pages):
+                        page += 1; break
+    
+    @stats.command(aliases=['u'])
+    @commands.is_owner()
+    async def users(self, ctx):
+        users = await db.Fetch.user_ids()
+        pages = []
+        text = ""
+        page = 0
+        fiftens = [i*15 for i in range(len(users))]
+        i = 0
+        while i in range(len(users)):
+            for u in users:
+                i += 1
+                if i-1 in fiftens[1:]:
+                    pages.append(text)
+                    text = ""
+                else:
+                    user = await self.client.fetch_user(int(u))
+                    uData = await db.Get.user(user.id)
+                    text += f"{i}. {user.name} ({HL(int(uData['wins']) + int(uData['draws']) + int(uData['loses']))})\n"
+        while True:
+            embed = default.Embed.custom(f"Connect 4 - Users ({HL(i)})", pages[page], "5261f8", None, None, f"Page: {page+1} / {len(pages)}")
             msg = await ctx.send(embed=embed)
             await msg.add_reaction('⬅️')
             await msg.add_reaction('➡️')
