@@ -1,19 +1,10 @@
 import discord, asyncio, humanize, typing, random
-from discord.embeds import Embed
 from discord.ext import commands
 from func import database as db
 from func import default
 from datetime import datetime, timedelta
 from func.human import *
 
-
-#! FIX
-# Discord terminal
-# async def discordTerminal(msg):
-#     msg = str(msg)
-#     channel = await client.fetch_channel(client.user, default.terminal())
-#     msg = [msg[i:i+2048] for i in range(0, len(msg), 2048)]
-#     await channel.send(f"```cmd\n{msg}\n```")
 
 class Backend:
 
@@ -42,22 +33,42 @@ class Backend:
         # Horizontal
         for col in range(columns-3):
             for row in range(rows):
-                if board[row][col] == str(player) and board[row][col+1] == str(player) and board[row][col+2] == str(player) and board[row][col+3] == str(player): return True
+                if board[row][col] == str(player) and board[row][col+1] == str(player) and board[row][col+2] == str(player) and board[row][col+3] == str(player):
+                    board[row][col] = 'h'
+                    board[row][col+1] = 'h'
+                    board[row][col+2] = 'h'
+                    board[row][col+3] = 'h'
+                    return True
 
         # Vertical
         for col in range(columns):
             for row in range(rows-3):
-                if board[row][col] == str(player) and board[row+1][col] == str(player) and board[row+2][col] == str(player) and board[row+3][col] == str(player): return True
+                if board[row][col] == str(player) and board[row+1][col] == str(player) and board[row+2][col] == str(player) and board[row+3][col] == str(player):
+                    board[row][col] = 'v'
+                    board[row+1][col] = 'v'
+                    board[row+2][col] = 'v'
+                    board[row+3][col] = 'v'
+                    return True
 
         # Ascend
         for col in range(columns-3):
             for row in range(rows-3):
-                if board[row][col] == str(player) and board[row+1][col+1] == str(player) and board[row+2][col+2] == str(player) and board[row+3][col+3] == str(player): return True
+                if board[row][col] == str(player) and board[row+1][col+1] == str(player) and board[row+2][col+2] == str(player) and board[row+3][col+3] == str(player): 
+                    board[row][col] = 'a'
+                    board[row+1][col+1] = 'a'
+                    board[row+2][col+2] = 'a'
+                    board[row+3][col+3] = 'a'
+                    return True
 
         # Descend
         for col in range(columns-3):
             for row in range(3,rows):
-                if board[row][col] == str(player) and board[row-1][col+1] == str(player) and board[row-2][col+2] == str(player) and board[row-3][col+3] == str(player): return True
+                if board[row][col] == str(player) and board[row-1][col+1] == str(player) and board[row-2][col+2] == str(player) and board[row-3][col+3] == str(player):
+                    board[row][col] = 'd'
+                    board[row-1][col+1] = 'd'
+                    board[row-2][col+2] = 'd'
+                    board[row-3][col+3] = 'd'
+                    return True
         
         return False
 
@@ -82,6 +93,10 @@ class Backend:
                 if board[row][col] == '0': newBoard += f"{theme['background']} "
                 if board[row][col] == '1': newBoard += f"{theme['oneDisc']} "
                 if board[row][col] == '2': newBoard += f"{theme['twoDisc']} "
+                if board[row][col] == 'v': newBoard += "<:c4_vertical:855634500963926036> "
+                if board[row][col] == 'h': newBoard += "<:c4_horizontal:855634968750325791> "
+                if board[row][col] == 'a': newBoard += "<:c4_ascending:855634992159522886> "
+                if board[row][col] == 'd': newBoard += "<:c4_descending:855635141057576971> "
         return newBoard
     
     # Fetch game
@@ -303,6 +318,7 @@ class Game(commands.Cog):
 
             #- Win check
             if await Backend.winCheck(game['id']):
+                board = await Backend.prettierGame(game['id'])
                 embed = discord.Embed(title="Connect 4", description=f"{board}", color = int(theme['embedColor'], 16))
                 if game['turn'] == ctx.author.id:
                     embed.add_field(name=f"{theme['oneDisc']} Player 1", value=f"{ctx.author.mention} *`(Winner!)`*", inline=False)

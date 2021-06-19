@@ -3,23 +3,23 @@ items = {
     "discs": {
         "candy": {
             "icon": "<:candy:844344413706125335>",
-            "price":  7500,
+            "price":  1000,
         },
         "red_hollow": {
             "icon": "<:red_hollow:844344435810369576>",
-            "price": 2500,
+            "price": 1000,
         },
         "yellow_gradient": {
             "icon": "<:yellow_gradient:846653364947255317>",
-            "price": 5000,
+            "price": 1000,
         },
         "orange_strips": {
             "icon": "<:orange_strips:846653239146446858>",
-            "price": 5000,
+            "price": 1000,
         },
         "blue_squares": {
             "icon": "<:blue_squares:846653268939898900>",
-            "price": 5000,
+            "price": 1000,
         },
         "yellow": {
             "icon": "<:yellow:844344578567569440>",
@@ -85,9 +85,17 @@ items = {
             "icon": ":brown_circle:",
             "price": 1000,
         },
+        "kek": {
+            "icon": "<:kek:848798371170222121>",
+            "price": 20000,
+        },
         "wanky": {
             "icon": "<:wanky:848829643947507763>",
-            "price": 6009,
+            "price": 600009,
+        },
+        "aidas": {
+            "icon": "<:aidas:848829654591733830>",
+            "price": 1000000,
         },
     },
 

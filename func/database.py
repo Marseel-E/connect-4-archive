@@ -235,10 +235,8 @@ class Update:
         if not (games[gameId]): return False
         if (overwrite):
             games[gameId][key] = value
-            print(f"Update game +overwrite: {(games[gameId][key])}\n")
         else:
             games[gameId][key] = games[gameId][key] + value
-            print(f"Update game: {(games[gameId][key])}\n")
 
     async def user(userId, key, value, overwrite : typing.Optional[bool] = False):
         user = await Get.user(userId)
