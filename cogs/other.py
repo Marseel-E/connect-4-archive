@@ -109,9 +109,9 @@ class Other(commands.Cog):
                 elif str(reaction.emoji) == '⏹️':
                     await msg.delete(); break
                 elif str(reaction.emoji) == '▶️' and page != len(pages):
-                    page += 1; break
+                    page += 1; pass
                 elif str(reaction.emoji) == '⏭️' and page != len(pages):
-                    page = len(pages); break
+                    page = len(pages); pass
                 else:
                     continue
             
@@ -160,9 +160,9 @@ class Other(commands.Cog):
                 elif str(reaction.emoji) == '⏹️':
                     await msg.delete(); break
                 elif str(reaction.emoji) == '▶️' and page != len(pages):
-                    page += 1; break
+                    page += 1; pass
                 elif str(reaction.emoji) == '⏭️' and page != len(pages):
-                    page = len(pages); break
+                    page = len(pages); pass
                 else:
                     continue
 
