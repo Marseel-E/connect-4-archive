@@ -504,5 +504,59 @@ class Game(commands.Cog):
         await ctx.send(embed=embed)
 
 
+    @commands.command(aliases=['htp', 'howtoplay'], name='how-to-play', help="Detailed explaination to how the game works.")
+    async def how_to_play(self, ctx, page : typing.Optional[int] = None):
+        if not (page): page = 0
+        rs = ['⏮️', '◀️', '⏹️', '▶️', '⏭️']
+
+        embeds = [
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+        ]
+
+        embeds[page].set_footer(text=f"Page: {page} / {len(embeds)} {default.footer(True)}")
+        msg = await ctx.send(embed=embeds[page])
+        [await msg.add_reaction(r) for r in rs]
+
+        while True:
+            def check(reaction, user):
+                return str(reaction.emoji) in rs and user == ctx.author
+
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=120)
+            except asyncio.TimeoutError:
+                await msg.delete(); break
+            else:
+                if str(reaction.emoji) == '⏮️' and page != 0:
+                    page == 0; pass
+                elif str(reaction.emoji) == '◀️' and page != 0:
+                    page -= 1; pass
+                elif str(reaction.emoji) == '⏹️':
+                    await msg.delete(); break
+                elif str(reaction.emoji) == '▶️' and page != len(embeds):
+                    page += 1; break
+                elif str(reaction.emoji) == '⏭️' and page != len(embeds):
+                    page = len(embeds); break
+                else:
+                    continue
+            
+            embeds[page].set_footer(text=f"Page: {page} / {len(embeds)} {default.footer(True)}")
+            await msg.edit(embed=embeds[page])
+            await msg.clear_reactions()
+            [await msg.add_reaction(r) for r in rs]
+            
+
+
+
 def setup(client):
     client.add_cog(Game(client))

@@ -1,10 +1,8 @@
-import discord, os, random, asyncio, humanize, typing
+import discord, os, random, typing
 from discord.ext import commands
 from func import database as db
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
 from func import default
-from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
 from func.human import *
 
 load_dotenv('func\.env')

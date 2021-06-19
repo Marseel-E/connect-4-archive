@@ -75,6 +75,7 @@ class Other(commands.Cog):
     @stats.command(aliases=['g'], help="Shows the guilds the bot is on.")
     @commands.cooldown(1, 600, commands.BucketType.guild)
     async def guilds(self, ctx):
+        rs = ['⏮️', '◀️', '⏹️', '▶️', '⏭️']
         pages = []; text = ""; page = 0; total_members = 0
         fives = [i*5 for i in range(len(self.client.guilds))]
         
@@ -89,13 +90,11 @@ class Other(commands.Cog):
         
         embed = default.Embed.custom(f"Connect 4 - Guilds ({HL(len(self.client.guilds))})", pages[page], "5261f8", None, None, f"Page: {page+1} / {len(pages)} | Users: {total_members}")
         msg = await ctx.send(embed=embed)
-        await msg.add_reaction('⬅️')
-        await msg.add_reaction('❌')
-        await msg.add_reaction('➡️')
+        [await msg.add_reaction(r) for r in rs]
         
         while True:
             def check(reaction, user):
-                return str(reaction.emoji) in ['⬅️', '❌', '➡️'] and user == ctx.author
+                return str(reaction.emoji) in rs and user == ctx.author
             
             try:
                 reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=30)
@@ -103,26 +102,28 @@ class Other(commands.Cog):
                 await msg.delete()
                 break; return
             else:
-                if str(reaction.emoji) == '⬅️' and page != 0:
+                if str(reaction.emoji) == '⏮️' and page != 0:
+                    page == 0; pass
+                elif str(reaction.emoji) == '◀️' and page != 0:
                     page -= 1; pass
-                elif str(reaction.emoji) == '➡️' and page+1 != len(pages):
-                    page += 1; pass
-                elif str(reaction.emoji) == '❌':
-                    await msg.delete()
-                    break
+                elif str(reaction.emoji) == '⏹️':
+                    await msg.delete(); break
+                elif str(reaction.emoji) == '▶️' and page != len(pages):
+                    page += 1; break
+                elif str(reaction.emoji) == '⏭️' and page != len(pages):
+                    page = len(pages); break
                 else:
                     continue
             
             embed = default.Embed.custom(f"Connect 4 - Guilds ({HL(len(self.client.guilds))})", pages[page], "5261f8", None, None, f"Page: {page+1} / {len(pages)} | Users: {total_members}")
             await msg.edit(embed=embed)
             await msg.clear_reactions()
-            await msg.add_reaction('⬅️')
-            await msg.add_reaction('❌')
-            await msg.add_reaction('➡️')
+            [await msg.add_reaction(r) for r in rs]
     
     @stats.command(aliases=['u'], help="Shows the people that use the bot and how many games they've played.")
     @commands.cooldown(1, 900, commands.BucketType.guild)
     async def users(self, ctx):
+        rs = ['⏮️', '◀️', '⏹️', '▶️', '⏭️']
         users = await db.Fetch.user_ids()
         pages = []; text = ""; page = 0; total_games = 0
         fiftens = [i*15 for i in range(len(users))]
@@ -140,13 +141,11 @@ class Other(commands.Cog):
 
         embed = default.Embed.custom(f"Connect 4 - Users ({HL(len(users))})", pages[page], "5261f8", None, None, f"Page: {page+1} / {len(pages)} | Games: {total_games}")
         msg = await ctx.send(embed=embed)
-        await msg.add_reaction('⬅️')
-        await msg.add_reaction('❌')
-        await msg.add_reaction('➡️')
+        [await msg.add_reaction(r) for r in rs]
 
         while True:
             def check(reaction, user):
-                return str(reaction.emoji) in ['⬅️', '❌', '➡️'] and user == ctx.author
+                return str(reaction.emoji) in rs and user == ctx.author
             
             try:
                 reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=30)
@@ -154,22 +153,23 @@ class Other(commands.Cog):
                 await msg.delete()
                 break; return
             else:
-                if str(reaction.emoji) == '⬅️' and page != 0:
+                if str(reaction.emoji) == '⏮️' and page != 0:
+                    page == 0; pass
+                elif str(reaction.emoji) == '◀️' and page != 0:
                     page -= 1; pass
-                elif str(reaction.emoji) == '➡️' and page+1 != len(pages):
-                    page += 1; pass
-                elif str(reaction.emoji) == '❌':
-                    await msg.delete()
-                    break
+                elif str(reaction.emoji) == '⏹️':
+                    await msg.delete(); break
+                elif str(reaction.emoji) == '▶️' and page != len(pages):
+                    page += 1; break
+                elif str(reaction.emoji) == '⏭️' and page != len(pages):
+                    page = len(pages); break
                 else:
                     continue
 
             embed = default.Embed.custom(f"Connect 4 - Users ({HL(len(users))})", pages[page], "5261f8", None, None, f"Page: {page+1} / {len(pages)} | Games: {total_games}")
             await msg.edit(embed=embed)
             await msg.clear_reactions()
-            await msg.add_reaction('⬅️')
-            await msg.add_reaction('❌')
-            await msg.add_reaction('➡️')
+            [await msg.add_reaction(r) for r in rs]
     
 
     @commands.command(aliases=['bug', 'report', 'br'], help="Report a bug/error in the bot.")

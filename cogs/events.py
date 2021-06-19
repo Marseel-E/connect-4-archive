@@ -1,7 +1,6 @@
 import discord, humanize
 from discord.ext import commands
 from func import default
-from func import database as db
 
 
 class Handler(commands.Cog):
