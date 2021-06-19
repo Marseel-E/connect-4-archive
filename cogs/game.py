@@ -455,7 +455,7 @@ class Game(commands.Cog):
 
                 # Embed color
                 elif msg in data['embedColors'].keys():
-                    await db.Update.user(ctx.author.id, 'embedColor', data['embedColors'][msg], True)
+                    await db.Update.user(ctx.author.id, 'embedColor', str(data['embedColors'][msg]), True)
                     embed = discord.Embed(description = f"New embed color: `{data['embedColors'][msg]}`", color = int(data['embedColors'][msg], 16))
                     await ctx.send(embed=embed)
                     break
