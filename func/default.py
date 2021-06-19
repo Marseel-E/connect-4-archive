@@ -6,7 +6,7 @@ def footer(seperate : typing.Optional[bool] = False):
     return "Connect 4 © 2021"
 
 def developer():
-    return [470866478720090114, 543937487580692493]
+    return [470866478720090114]
 
 def terminal():
     return 849531726312505355

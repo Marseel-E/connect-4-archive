@@ -4,10 +4,6 @@ from func import default
 from func import database as db
 
 
-def is_not_dev(ctx):
-    if ctx.author.id not in default.developer(): return True
-    return False
-
 class Handler(commands.Cog):
     def __init__(self, client):
         self.client = client
@@ -19,39 +15,39 @@ class Handler(commands.Cog):
             T = "CommandOnCooldown"
             D = f"Please wait `{humanize.precisedelta(error.retry_after)}` until next use."
 
-        if isinstance(error, commands.MissingRequiredArgument):
+        elif isinstance(error, commands.MissingRequiredArgument):
             T = "MissingRequiredArgument"
             D = f"`{error.param}` is a required argument that is missing."
         
-        if isinstance(error, commands.MemberNotFound):
+        elif isinstance(error, commands.MemberNotFound):
             T = "MemberNotFound"
             D = f"`{error.argument}` not found"
         
-        if isinstance(error, commands.MissingPermissions):
+        elif isinstance(error, commands.MissingPermissions):
             T = "MissingPermissions"
             D = f"This command requires the `{error.missing_perms}` permission."
         
-        if isinstance(error, commands.BotMissingPermissions):
+        elif isinstance(error, commands.BotMissingPermissions):
             T = "MissingPermissions"
             D = f"`{error.missing_perms}` is a required permission that the bot is missing."
         
-        if isinstance(error, commands.NotOwner):
+        elif isinstance(error, commands.NotOwner):
             T = "NotOwner"
             D = "Only the owner of this bot can run this command."
         
-        if isinstance(error, commands.NSFWChannelRequired):
+        elif isinstance(error, commands.NSFWChannelRequired):
             T = "NSFWChannelRequired"
             D = "This command only works in `NSFW` channels."
         
-        if isinstance(error, commands.TooManyArguments):
+        elif isinstance(error, commands.TooManyArguments):
             T = "TooManyArguments"
             D = f"You don't need all these arguments! (`{error.args}`)"
         
-        if isinstance(error, commands.ChannelNotFound):
+        elif isinstance(error, commands.ChannelNotFound):
             T = "ChannelNotFound"
             D = f"`{error.argument}` not found."
         
-        if isinstance(error, commands.ChannelNotReadable):
+        elif isinstance(error, commands.ChannelNotReadable):
             T = "ChannelNotReadable"
             D = f"`{error.argument}` is not readable."
         
@@ -61,7 +57,7 @@ class Handler(commands.Cog):
 
         embed = default.Embed.error(T, D)
         await ctx.send(embed=embed, delete_after=10)
-        print(error)
+        [await default.Support_server.terminal(self.client, error[i:i+2000]) for i in range(0, len(error), 2000)]
 
 
 def setup(client):

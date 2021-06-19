@@ -1,10 +1,9 @@
-import discord, sys, traceback, typing, os, asyncio, humanize
+import discord, sys, traceback, typing, os, asyncio
 from discord.ext import commands
 from io import StringIO
 from func import database as db
 from func.human import *
 from func import default
-from datetime import datetime, timedelta
 
 
 def is_dev(ctx):
