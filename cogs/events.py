@@ -56,7 +56,7 @@ class Handler(commands.Cog):
 
         embed = default.Embed.error(T, D)
         await ctx.send(embed=embed, delete_after=10)
-        [await default.Support_server.terminal(self.client, str(error)[i:i+2000]) for i in range(0, len(str(error)), 2000)]
+        [await default.Support_server.terminal(self.client, default.Embed.error(None, str(error)[i:i+2000])) for i in range(0, len(str(error)), 2000)]
 
 
 def setup(client):

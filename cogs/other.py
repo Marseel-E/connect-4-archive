@@ -103,7 +103,7 @@ class Other(commands.Cog):
                 break; return
             else:
                 if str(reaction.emoji) == '⏮️' and page != 0:
-                    page == 0; pass
+                    page = 0; pass
                 elif str(reaction.emoji) == '◀️' and page != 0:
                     page -= 1; pass
                 elif str(reaction.emoji) == '⏹️':
@@ -154,7 +154,7 @@ class Other(commands.Cog):
                 break; return
             else:
                 if str(reaction.emoji) == '⏮️' and page != 0:
-                    page == 0; pass
+                    page = 0; pass
                 elif str(reaction.emoji) == '◀️' and page != 0:
                     page -= 1; pass
                 elif str(reaction.emoji) == '⏹️':

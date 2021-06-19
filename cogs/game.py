@@ -538,7 +538,7 @@ class Game(commands.Cog):
                 await msg.delete(); break
             else:
                 if str(reaction.emoji) == '⏮️' and page != 0:
-                    page == 0; pass
+                    page = 0; pass
                 elif str(reaction.emoji) == '◀️' and page != 0:
                     page -= 1; pass
                 elif str(reaction.emoji) == '⏹️':
