@@ -27,7 +27,7 @@ intents.reactions=True
 intents.voice_states=True
 
 # Client
-client = commands.Bot(command_prefix=commands.when_mentioned_or(get_prefix), case_sensitive=True, intents=intents)
+client = commands.Bot(command_prefix=get_prefix, case_sensitive=True, intents=intents)
 
 
 # On ready event
