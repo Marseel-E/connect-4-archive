@@ -537,16 +537,16 @@ class Game(commands.Cog):
             except asyncio.TimeoutError:
                 await msg.delete(); break
             else:
-                if str(reaction.emoji) == '⏮️' and page != 0:
-                    page == 0; pass
+                if str(reaction.emoji) == '⏮️':
+                    page = 0; pass
                 elif str(reaction.emoji) == '◀️' and page != 0:
                     page -= 1; pass
                 elif str(reaction.emoji) == '⏹️':
                     await msg.delete(); break
                 elif str(reaction.emoji) == '▶️' and page != len(embeds):
                     page += 1; pass
-                elif str(reaction.emoji) == '⏭️' and page != len(embeds):
-                    page == len(embeds); pass
+                elif str(reaction.emoji) == '⏭️':
+                    page = len(embeds); pass
                 else:
                     continue
             

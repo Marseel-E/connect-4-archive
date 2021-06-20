@@ -27,7 +27,7 @@ intents.reactions=True
 intents.voice_states=True
 
 # Client
-client = commands.Bot(command_prefix=get_prefix, case_sensitive=True, intents=intents)
+client = commands.Bot(command_prefix=commands.when_mentioned_or(get_prefix), case_sensitive=True, intents=intents)
 
 
 # On ready event
@@ -123,9 +123,10 @@ class Help(commands.HelpCommand):
     async def send_group_help(self, group):
         embed = default.Embed.minimal(f"{group.cog_name} - {group.name}", f"{self.get_command_signature(group)}", "5261F8")
         embed.add_field(name="Description", value=group.help)
-        alias = group.aliases
-        if alias:
-            embed.add_field(name="Aliases", value=", ".join(alias), inline=False)
+        if group.aliases:
+            embed.add_field(name="Aliases", value=", ".join(group.aliases), inline=False)
+        if group.commands:
+            embed.add_field(name="Commands", value=group.commands, inline=False)
 
         channel = self.get_destination()
         await channel.send(embed=embed)

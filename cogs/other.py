@@ -102,16 +102,16 @@ class Other(commands.Cog):
                 await msg.delete()
                 break; return
             else:
-                if str(reaction.emoji) == '⏮️' and page != 0:
-                    page == 0; pass
+                if str(reaction.emoji) == '⏮️':
+                    page = 0; pass
                 elif str(reaction.emoji) == '◀️' and page != 0:
                     page -= 1; pass
                 elif str(reaction.emoji) == '⏹️':
                     await msg.delete(); break
                 elif str(reaction.emoji) == '▶️' and page != len(pages):
                     page += 1; pass
-                elif str(reaction.emoji) == '⏭️' and page != len(pages):
-                    page == len(pages); pass
+                elif str(reaction.emoji) == '⏭️':
+                    page = len(pages); pass
                 else:
                     continue
             
@@ -153,16 +153,16 @@ class Other(commands.Cog):
                 await msg.delete()
                 break; return
             else:
-                if str(reaction.emoji) == '⏮️' and page != 0:
-                    page == 0; pass
+                if str(reaction.emoji) == '⏮️':
+                    page = 0; pass
                 elif str(reaction.emoji) == '◀️' and page != 0:
                     page -= 1; pass
                 elif str(reaction.emoji) == '⏹️':
                     await msg.delete(); break
                 elif str(reaction.emoji) == '▶️' and page != len(pages):
                     page += 1; pass
-                elif str(reaction.emoji) == '⏭️' and page != len(pages):
-                    page == len(pages); pass
+                elif str(reaction.emoji) == '⏭️':
+                    page = len(pages); pass
                 else:
                     continue
 
