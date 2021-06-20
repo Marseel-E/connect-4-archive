@@ -489,18 +489,19 @@ class Game(commands.Cog):
         if (member):
             user = member
         data = await db.Get.user(user.id)
-        embed = discord.Embed(color = int(data['embedColor'], 16))
-        embed.set_author(name = user)
-        embed.set_thumbnail(url = user.avatar_url)
-        embed.add_field(name="Level:", value=data['level'], inline=True)
-        embed.add_field(name="Rank:", value=db.Get.rank(int(data['points'])), inline=True) #- Make rank
-        embed.add_field(name="Coins:", value=f"{HL(data['coins'])}", inline=True)
-        embed.add_field(name=f"Games played: ({HL(int(data['wins'] + data['draws'] + data['loses']))})", value=f"{B(data['wins'])} Wins | {B(data['draws'])} Draws | {B(data['loses'])} Loses", inline=False)
-        embed.add_field(name="Primary disc:", value=f"{data['primaryDisc']} {HL(fix(data['primaryDisc']))}", inline=True)
-        embed.add_field(name="Secondary disc:", value=f"{data['secondaryDisc']} {HL(fix(data['secondaryDisc']))}", inline=True)
-        embed.add_field(name="Background:", value=f"{data['background']} {HL(fix(data['background']))}", inline=False)
-        embed.add_field(name="Embed color:", value=f"{HL(data['embedColor'])}", inline=False)
-        embed.set_footer(text = f"Exp: {round(int(data['exp']))} / {round((int(data['level']) * 4.231) * 100)} {default.footer(True)}")
+        
+        fields = [
+            f"Level:\s {data['level']}\s True",
+            f"Rank:\s {db.Get.rank(int(data['points']))}\s True",
+            f"Coins:\s {HL(data['coins'])}\s True",
+            f"Games played: ({HL(int(data['wins'] + data['draws'] + data['loses']))})\s {B(data['wins'])} Wins | {B(data['draws'])} Draws | {B(data['loses'])} Loses\s False",
+            f"Primary disc:\s {data['primaryDisc']} {HL(fix(data['primaryDisc']))}\s True",
+            f"Secondary disc:\s {data['secondaryDisc']} {HL(fix(data['secondaryDisc']))}\s True",
+            f"Background:\s {data['background']} {HL(fix(data['background']))}\s False",
+            f"Embed color:\s {HL(data['embedColor'])}\s False",
+        ]
+
+        embed = default.Embed.custom(None, None, data['embedColor'], fields, user, f"Exp: {round(int(data['exp']))} / {round((int(data['level']) * 4.231) * 100)}", None, user.avatar_url)
         await ctx.send(embed=embed)
 
 
@@ -554,8 +555,249 @@ class Game(commands.Cog):
             await msg.edit(embed=embeds[page])
             await msg.clear_reactions()
             [await msg.add_reaction(r) for r in rs]
-            
 
+
+    @commands.command(aliases=['s', 'store'], help="Displays Connect 4's shop and allows you to purchase from it.")
+    async def shop(self, ctx, category : typing.Optional[str] = None):
+        # Data
+        data = await db.Fetch.items()
+        invData = await db.Get.inventory(ctx.author.id)
+        userData = await db.Get.user(ctx.author.id)
+        
+        # Direct category
+        if (category): pass
+        
+        # Main embed
+        embed = default.Embed.minimal("Connect 4 - Shop", ":blue_circle: Discs \n:white_circle: Backgrounds \n:orange_square: Embed colors")
+        msg = await ctx.send(embed=embed)
+        
+        # Reactions
+        await msg.add_reaction("🔵")
+        await msg.add_reaction("⚪")
+        await msg.add_reaction("🟧")
+        await msg.add_reaction("❌")
+
+        # Reaction check
+        def check(reaction, user):
+            return reaction.emoji in ["🔵", "⚪", "🟧", "❌"] and user == ctx.author
+        
+        # Reaction wait for
+        try:
+            reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=150)
+        except asyncio.TimeoutError:
+            await msg.delete()
+            return
+
+        # Discs
+        if reaction.emoji == "🔵":
+
+            # Discs embed
+            desc = ""
+            for name, value in data['discs'].items():
+                desc += f"{value['icon']} {fix(name)}: **Æ**`{value['price']}`\n"
+            embed = default.Embed.minimal("Connect 4 - Shop", desc)
+            await msg.delete()
+            msg = await ctx.send(embed=embed)
+
+            child = 'discs'
+
+            # Reactions
+            await msg.add_reaction("🛒")
+            await msg.add_reaction("❌")
+
+            # Reaction check
+            def check(reaction, user):
+                return reaction.emoji in ["🛒", "❌"] and user == ctx.author
+            
+            # Reaction wait for
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=150)
+            except asyncio.TimeoutError:
+                await msg.delete()
+                return
+
+            # Buy
+            if reaction.emoji == "🛒":
+                embed.set_footer(text= f"Choose your purchase.. {default.footer(True)}")
+                msg = await msg.edit(embed=embed)
+
+                # Choose item
+                while True:
+                    
+                    # Message check
+                    def check(m):
+                        fm = unfix(m.content.lower())
+                        return fm in data['discs'].keys() or fm in data['backgrounds'].keys() or fm in data['embedColors'].keys() and m.author == ctx.author
+                    
+                    # Message wait for
+                    try:
+                        msg = await self.client.wait_for('message', check=check, timeout=150)
+                    except asyncio.TimeoutError:
+                        await msg.delete()
+                        return
+
+                    msg = unfix(msg.content.lower())
+
+                    # Discs
+                    if msg in data[child].keys() and msg not in invData[child].keys():
+                        if userData['coins'] >= data[child][msg]['price']:
+                            await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
+                            await db.Update.inventory(ctx.author.id, child, msg)
+                            embed = default.Embed.success(None, f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
+                            break
+                        else:
+                            embed = default.Embed.error(None, f"You don't have Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
+                    
+                    else:
+                        embed = default.Embed.minimal(None, "Choose a valid item")
+                        await ctx.send(embed=embed, delete_after=5)
+            
+            # Exit
+            if reaction.emoji == "❌": await msg.delete(); return
+        
+        # Backgrounds
+        if reaction.emoji == "⚪":
+
+            # Backgrounds embed
+            desc = ""
+            for name, value in data['backgrounds'].items():
+                desc += f"{value['icon']} {fix(name)}: **Æ**`{value['price']}`\n"
+            embed = default.Embed.minimal("Connect 4 - Shop", desc)
+            await msg.delete()
+            msg = await ctx.send(embed=embed)
+
+            child = 'backgrounds'
+
+            # Reactions
+            await msg.add_reaction("🛒")
+            await msg.add_reaction("❌")
+
+            # Reaction check
+            def check(reaction, user):
+                return reaction.emoji in ["🛒", "❌"] and user == ctx.author
+            
+            # Reaction wait for
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=150)
+            except asyncio.TimeoutError:
+                await msg.delete()
+                return
+
+            # Buy
+            if reaction.emoji == "🛒":
+                embed.set_footer(text= f"Choose your purchase.. {default.footer(True)}")
+                msg = await msg.edit(embed=embed)
+
+                # Choose item
+                while True:
+
+                    # Message check
+                    def check(m):
+                        fm = unfix(m.content.lower())
+                        return fm in data['discs'].keys() or fm in data['backgrounds'].keys() or fm in data['embedColors'].keys() and m.author == ctx.author
+                    
+                    # Message wait for
+                    try:
+                        msg = await self.client.wait_for('message', check=check, timeout=150)
+                    except asyncio.TimeoutError:
+                        await msg.delete()
+                        return
+
+
+                    msg = unfix(msg.content.lower())
+
+                    # Discs
+                    if msg in data[child].keys() and msg not in invData[child].keys():
+                        if userData['coins'] >= data[child][msg]['price']:
+                            await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
+                            await db.Update.inventory(ctx.author.id, child, msg)
+                            embed = default.Embed.success(None, f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
+                            break
+                        else:
+                            embed = default.Embed.error(None, f"You don't have Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
+                    
+                    else:
+                        embed = default.Embed.minimal(None, "Choose a valid item")
+                        await ctx.send(embed=embed, delete_after=5)
+            
+            # Exit
+            if reaction.emoji == "❌": await msg.delete(); return
+        
+        # Embed colors
+        if reaction.emoji == "🟧":
+
+            # Embed colors embed
+            desc = ""
+            for name, value in data['embedColors'].items():
+                desc += f"`{value['icon']}` {fix(name)}: **Æ**`{value['price']}`\n"
+            embed = default.Embed.minimal("Connect 4 - Shop", desc)
+            await msg.delete()
+            msg = await ctx.send(embed=embed)
+
+            child = 'embedColors'
+
+            # Reactions
+            await msg.add_reaction("🛒")
+            await msg.add_reaction("❌")
+
+            # Reaction check
+            def check(reaction, user):
+                return reaction.emoji in ["🛒", "❌"] and user == ctx.author
+            
+            # Reaction wait for
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', check=check, timeout=150)
+            except asyncio.TimeoutError:
+                await msg.delete()
+                return
+
+            # Buy
+            if reaction.emoji == "🛒":
+                embed.set_footer(text= f"Choose your purchase.. {default.footer(True)}")
+                msg = await msg.edit(embed=embed)
+
+                # Choose item
+                while True:
+                    
+                    # Message check
+                    def check(m):
+                        fm = unfix(m.content.lower())
+                        return fm in data['discs'].keys() or fm in data['backgrounds'].keys() or fm in data['embedColors'].keys() and m.author == ctx.author
+                    
+                    # Message wait for
+                    try:
+                        msg = await self.client.wait_for('message', check=check, timeout=150)
+                    except asyncio.TimeoutError:
+                        await msg.delete()
+                        return
+
+                    msg = unfix(msg.content.lower())
+
+                    # Discs
+                    if msg in data[child].keys() and msg not in invData[child].keys():
+                        if userData['coins'] >= data[child][msg]['price']:
+                            await db.Update.user(ctx.author.id, 'coins', int(userData['coins'] - data[child][msg]['price']), True)
+                            await db.Update.inventory(ctx.author.id, child, msg)
+                            embed = default.Embed.success(None, f"{ctx.author.mention}, You purchased {data[child][msg]['icon']} for Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
+                            break
+                        else:
+                            embed = default.Embed.error(None, f"You don't have Æ`{data[child][msg]['price']}`")
+                            await ctx.send(embed=embed, delete_after=5)
+                    
+                    else:
+                        embed = default.Embed.minimal(None, "Choose a valid item")
+                        await ctx.send(embed=embed, delete_after=5)
+            
+            # Exit
+            if reaction.emoji == "❌": await msg.delete(); return
+        
+        # Exit
+        if reaction.emoji == "❌": await msg.delete(); return
 
 
 def setup(client):

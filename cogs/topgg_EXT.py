@@ -5,7 +5,7 @@ from discord.ext import commands, tasks
 class TopGG(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc5NTA5OTY5MDYwOTI3OTAwNiIsImJvdCI6dHJ1ZSwiaWF0IjoxNjIyODUyNjg5fQ.-zEp0VTyX2hvyH6ktUbFFUQ_TXEfE4LZvp654x94xoE'
+        self.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc5NTA5OTY5MDYwOTI3OTAwNiIsImJvdCI6dHJ1ZSwiaWF0IjoxNjI0MTQ3OTk5fQ.oep6sBsG4TnZRmcsiV3kImvw2aXG4_dECdj0pF0Pzws'
         self.dblpy = dbl.DBLClient(self.client, self.token)
 
 
