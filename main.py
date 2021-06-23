@@ -116,7 +116,7 @@ class Help(commands.HelpCommand):
         commands = await self.filter_commands(cog.get_commands())
         for cmd in commands:
             desc += f"{self.get_command_signature(cmd)}\n"
-        embed = default.Embed.minimal(f"Help - {cog.qualified_name}", f"() = Required\n[] = Optional\n{desc}", "5261F8")
+        embed = default.Embed.minimal(f"Help - {cog.qualified_name}", f"() = Required\n[] = Optional\n\n{B('Commands:')}\n{desc}", "5261F8")
         channel = self.get_destination()
         await channel.send(embed=embed)
     
@@ -126,7 +126,12 @@ class Help(commands.HelpCommand):
         if group.aliases:
             embed.add_field(name="Aliases", value=", ".join(group.aliases), inline=False)
         if group.commands:
-            embed.add_field(name="Commands", value=group.commands, inline=False)
+            V = ""
+            for cmd in group.commands:
+                V += f"\n{cmd.qualified_name}".replace(f'{group.name} ', '')
+                if (cmd.aliases):
+                    V += f" ({HL(', '.join(cmd.aliases))})"
+            embed.add_field(name="Subcommands", value=V, inline=False)
 
         channel = self.get_destination()
         await channel.send(embed=embed)

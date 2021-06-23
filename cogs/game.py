@@ -1,3 +1,4 @@
+from collections import defaultdict
 import discord, asyncio, humanize, typing, random
 from discord.ext import commands
 from func import database as db
@@ -95,8 +96,8 @@ class Backend:
                 if board[row][col] == '2': newBoard += f"{theme['twoDisc']} "
                 if board[row][col] == 'v': newBoard += "<:c4_vertical:855634500963926036> "
                 if board[row][col] == 'h': newBoard += "<:c4_horizontal:855634968750325791> "
-                if board[row][col] == 'a': newBoard += "<:c4_ascending:855634992159522886> "
-                if board[row][col] == 'd': newBoard += "<:c4_descending:855635141057576971> "
+                if board[row][col] == 'a': newBoard += "<:c4_descending:855635141057576971> "
+                if board[row][col] == 'd': newBoard += "<:c4_ascending:855634992159522886> "
         return newBoard
     
     # Fetch game
@@ -111,6 +112,29 @@ class Backend:
 class Game(commands.Cog):
     def __init__(self, client):
         self.client = client
+    
+
+    @commands.command(invoke_without_command=True, help="Shows the top 10 people in a specific category.", aliases=['lb'])
+    async def leaderboard(self, ctx):
+        await default.Embed.maintenance(ctx); return
+        users = {}
+        ids = await db.Fetch.user_ids()
+        for id in ids:
+            user = await db.Get.user(id)
+            users[id] = user
+        
+        await default.Support_server.terminal(self.client, str(users))
+
+        users = sorted(users.items(), key=lambda x: x[1]['wins'], reverse=True)
+        
+        await default.Support_server.terminal(self.client, str(users))
+        
+        desc = ""
+        for i in range(10):
+            desc += f"{i+1}. {users[i]['wins']}\n"
+
+        embed = default.Embed.custom("Leaderboard - test", desc, default.Color.blurple, None, None, "Your rank: 0")
+        await ctx.send(embed=embed)
 
 
     @commands.command(help="Displays the game board.")
@@ -355,9 +379,9 @@ class Game(commands.Cog):
         timeSpent = datetime.utcnow() - startTime
         await ctx.send(f"Time spent: {humanize.precisedelta(timeSpent)}", delete_after=10)
     
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, hidden=True)
     async def lobby(self, ctx):
-        embed = default.Embed.maintenance()
+        await default.Embed.maintenance(ctx); return
         await ctx.send(embed=embed); return
         lData = await db.Lobby.fetch()
         fields = []
@@ -369,7 +393,7 @@ class Game(commands.Cog):
     
     @lobby.command()
     async def join(self, ctx):
-        embed = default.Embed.maintenance()
+        await default.Embed.maintenance(ctx); return
         await ctx.send(embed=embed); return
         lData = await db.Lobby.fetch()
         if ctx.author.id in lData.keys():
@@ -383,7 +407,7 @@ class Game(commands.Cog):
     
     @lobby.command()
     async def leave(self, ctx):
-        embed = default.Embed.maintenance()
+        await default.Embed.maintenance(ctx); return
         await ctx.send(embed=embed); return
         lData = await db.Lobby.fetch()
         if ctx.author.id not in lData.keys():
@@ -507,21 +531,11 @@ class Game(commands.Cog):
 
     @commands.command(aliases=['htp', 'howtoplay'], name='how-to-play', help="Detailed explaination to how the game works.")
     async def how_to_play(self, ctx, page : typing.Optional[int] = None):
+        await default.Embed.maintenance(ctx); return
         if not (page): page = 0
         rs = ['⏮️', '◀️', '⏹️', '▶️', '⏭️']
 
         embeds = [
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
             default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
         ]
 

@@ -72,10 +72,10 @@ class Embed:
                 embed.add_field(name = Field[0], value=Field[1], inline=Field[2])
         return embed
 
-    def maintenance():
+    async def maintenance(ctx):
         embed = discord.Embed(title="Maintenance", description=f"This command is currently under maintenance, visit the {B('[support server](https://discord.gg/JgR6XywMwZ)')} for further assistance.", color=int(Color.red, 16))
         embed.set_footer(text=footer())
-        return embed
+        await ctx.send(embed=embed)
 
 
 class Support_server:
@@ -85,7 +85,7 @@ class Support_server:
         if type(msg) == discord.Embed:
             await channel.send(embed=msg)
             return
-        await channel.send(msg)
+        [await channel.send(str(msg)[i:i+2000]) for i in range(0, len(str(msg)), 2000)]
 
 
 class Color:

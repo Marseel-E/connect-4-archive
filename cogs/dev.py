@@ -31,7 +31,7 @@ class Developer(commands.Cog):
 
 
     # Python, Py command
-    @commands.command(help="Evaluates Python code.")
+    @commands.command(help="Evaluates Python code.", aliases=['python', 'eval', 'ev'])
     @commands.is_owner()
     async def py(self, ctx, unformatted : typing.Optional[bool], *, cmd):
         await ctx.message.delete()
@@ -204,7 +204,7 @@ class Developer(commands.Cog):
     @commands.group(hidden=True, invoke_without_command=True, aliases=['bl'], help="Blacklists a server/user from the bot.")
     @commands.check(is_dev)
     async def blacklist(self, ctx, user : discord.Member, remove : typing.Optional[bool] = False):
-        embed = default.Embed.maintenance()
+        await default.Embed.maintenance(ctx); return
         await ctx.send(embed=embed)
     #     if (remove):
     #         await db.Update.blacklist(user.id, True)
@@ -217,7 +217,7 @@ class Developer(commands.Cog):
     @blacklist.command(aliases=['g'])
     @commands.check(is_dev)
     async def guild(self, ctx, guild : discord.Guild, remove : typing.Optional[bool] = False):
-        embed = default.Embed.maintenance()
+        await default.Embed.maintenance(ctx); return
         await ctx.send(embed=embed)
     #     if (remove):
     #         await db.Update.blacklist(guild.id, True)

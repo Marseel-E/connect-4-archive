@@ -28,6 +28,7 @@ default = {
         "exp": 0,
         "level": 1,
         "rank": 0,
+        "premium": False,
         "primaryDisc": ":blue_circle:",
         "secondaryDisc": ":yellow_circle:",
         "background": ":black_circle:",

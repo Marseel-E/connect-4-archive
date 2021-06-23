@@ -34,7 +34,7 @@ class Other(commands.Cog):
 
     @commands.command(help="An advanced embed creation command.\n\n*Use quotations (`' '`) for sentences.\n*Use `None` for an unwanted argument.\n__Example__:\n```\nembed None 'amazing description'\n```That would create an embed with only description.\n\n*Use brackets (`[ ]`) to hold your fields.\n*Field name, value & inline (`True`,`False`) should be seperated by (`\s `) inside your string/quotation, inside the bracket.\n__Example__:\n```\nembed ['field_1\s field_2\s True', 'field_2\s value_2\s True', 'field_3\s value_3\s False']\n```That would create an embed with only 3 fields: if field 1: if 2 will be in the same line but field 3 will be in a seperate line.", aliases=['e'])
     async def embed(self, ctx, title : typing.Optional[str] = None, description : typing.Optional[str] = None, color : typing.Optional[str] = "5261f8", author : typing.Optional[discord.Member] = None, thumbnail : typing.Optional[str] = None, image : typing.Optional[str] = None, footer : typing.Optional[str] = None, fields : typing.Optional[list] = None):
-        embed = default.Embed.maintenance()
+        await default.Embed.maintenance(ctx); return
         await ctx.send(embed=embed)
 
 
@@ -75,12 +75,12 @@ class Other(commands.Cog):
     @stats.command(aliases=['g'], help="Shows the guilds the bot is on.")
     @commands.cooldown(1, 600, commands.BucketType.guild)
     async def guilds(self, ctx):
-        rs = ['⏮️', '◀️', '⏹️', '▶️', '⏭️']
+        rs = ['◀️', '⏹️', '▶️']
         pages = []; text = ""; page = 0; total_members = 0
-        fives = [i*5 for i in range(len(self.client.guilds))]
+        tens = [i*10 for i in range(len(self.client.guilds))]
         
         for g in self.client.guilds:
-            if self.client.guilds.index(g) in fives[1:]:
+            if self.client.guilds.index(g)+1 in tens[1:]:
                 pages.append(text)
                 text = ""
             else:
@@ -102,16 +102,12 @@ class Other(commands.Cog):
                 await msg.delete()
                 break; return
             else:
-                if str(reaction.emoji) == '⏮️':
-                    page = 0; pass
-                elif str(reaction.emoji) == '◀️' and page != 0:
+                if str(reaction.emoji) == '◀️' and page > 0:
                     page -= 1; pass
                 elif str(reaction.emoji) == '⏹️':
                     await msg.delete(); break
-                elif str(reaction.emoji) == '▶️' and page != len(pages):
+                elif  str(reaction.emoji) == '▶️' and page+1 < len(pages): 
                     page += 1; pass
-                elif str(reaction.emoji) == '⏭️':
-                    page = len(pages); pass
                 else:
                     continue
             
@@ -123,13 +119,13 @@ class Other(commands.Cog):
     @stats.command(aliases=['u'], help="Shows the people that use the bot and how many games they've played.")
     @commands.cooldown(1, 900, commands.BucketType.guild)
     async def users(self, ctx):
-        rs = ['⏮️', '◀️', '⏹️', '▶️', '⏭️']
+        rs = ['◀️', '⏹️', '▶️']
         users = await db.Fetch.user_ids()
         pages = []; text = ""; page = 0; total_games = 0
         fiftens = [i*15 for i in range(len(users))]
 
         for u in users:
-            if users.index(u) in fiftens[1:]:
+            if users.index(u)+1 in fiftens[1:]:
                 pages.append(text)
                 text = ""
             else:
@@ -153,16 +149,12 @@ class Other(commands.Cog):
                 await msg.delete()
                 break; return
             else:
-                if str(reaction.emoji) == '⏮️':
-                    page = 0; pass
-                elif str(reaction.emoji) == '◀️' and page != 0:
-                    page -= 1; pass
+                if str(reaction.emoji) == '◀️' and page > 0:
+                    page -= 1
                 elif str(reaction.emoji) == '⏹️':
                     await msg.delete(); break
-                elif str(reaction.emoji) == '▶️' and page != len(pages):
-                    page += 1; pass
-                elif str(reaction.emoji) == '⏭️':
-                    page = len(pages); pass
+                elif str(reaction.emoji) == '▶️' and page+1 < len(pages):
+                    page += 1
                 else:
                     continue
 
