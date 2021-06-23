@@ -36,10 +36,18 @@ class Lair(commands.Cog):
                 python = guild.get_role(846983176143634432)
                 javascript = guild.get_role(846983569582719016)
                 cs = guild.get_role(846983682790260737)
+                news = guild.get_role(857136111524380672)
+                giveaways = guild.get_role(857136292419993630)
+                events = guild.get_role(857136360116715541)
+                tournaments = guild.get_role(857136411752661032)
                 member = guild.get_member(payload.user_id)
                 if payload.emoji.id == 847092622237499403 and python in member.roles: await member.remove_roles(python)
                 if payload.emoji.id == 847093478621053029 and javascript in member.roles: await member.remove_roles(javascript)
                 if payload.emoji.id == 847093467029176370 and cs in member.roles: await member.remove_roles(cs)
+                if payload.emoji.id == 857172373127036938 and news in member.roles: await member.remove_roles(cs)
+                if payload.emoji.id == 857172516211523604 and giveaways in member.roles: await member.remove_roles(cs)
+                if payload.emoji.id == 857172558348812288 and events in member.roles: await member.remove_roles(cs)
+                if payload.emoji.id == 857172602630832129 and tournaments in member.roles: await member.remove_roles(cs)
     
 
     # @commands.Cog.listener(name="on_voice_state_update")
