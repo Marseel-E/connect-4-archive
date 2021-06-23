@@ -114,26 +114,27 @@ class Game(commands.Cog):
         self.client = client
     
 
-    @commands.command(invoke_without_command=True, help="Shows the top 10 people in a specific category.", aliases=['lb'])
+    @commands.group(invoke_without_command=True, help="Shows the top 10 people in a specific category.", aliases=['lb'])
     async def leaderboard(self, ctx):
-        await default.Embed.maintenance(ctx); return
         users = {}
         ids = await db.Fetch.user_ids()
         for id in ids:
             user = await db.Get.user(id)
-            users[id] = user
-        
-        await default.Support_server.terminal(self.client, str(users))
+            users[id] = user['wins']
 
-        users = sorted(users.items(), key=lambda x: x[1]['wins'], reverse=True)
-        
-        await default.Support_server.terminal(self.client, str(users))
-        
+        users = sorted(users.items(), key=lambda x: x[1], reverse=True)
+
         desc = ""
-        for i in range(10):
-            desc += f"{i+1}. {users[i]['wins']}\n"
+        for i in users:
+            if users.index(i) >= 10: break
+            user = await self.client.fetch_user(i[0])
+            if i[0] == str(ctx.author.id):
+                user = B(f"[{user}]({ctx.channel.last_message.jump_url})")
+            desc += f"{users.index(i)+1}. {B(user)} - {HL(i[1])}\n"
 
-        embed = default.Embed.custom("Leaderboard - test", desc, default.Color.blurple, None, None, "Your rank: 0")
+        uData = await db.Get.user(ctx.author.id)
+
+        embed = default.Embed.custom("Leaderboard - Wins", desc, default.Color.blurple, None, None, f"Your rank: {users.index((str(ctx.author.id), uData['wins']))+1}")
         await ctx.send(embed=embed)
 
 
@@ -514,18 +515,27 @@ class Game(commands.Cog):
             user = member
         data = await db.Get.user(user.id)
         
+        games = f"{B(data['wins'])} Wins | {B(data['draws'])} Draws | {B(data['loses'])} Loses"
+        if int(data['wins'] + data['loses'] + data['draws']) != 0 and data['wins'] != 0:
+            g = data['wins'] + data['loses'] + data['draws']
+            wp = (data['wins'] / g) * 100
+            games = f"{B(data['wins'])} Wins (`{wp:.1f}%`) | {B(data['draws'])} Draws | {B(data['loses'])} Loses"
+
         fields = [
             f"Level:\s {data['level']}\s True",
             f"Rank:\s {db.Get.rank(int(data['points']))}\s True",
             f"Coins:\s {HL(data['coins'])}\s True",
-            f"Games played: ({HL(int(data['wins'] + data['draws'] + data['loses']))})\s {B(data['wins'])} Wins | {B(data['draws'])} Draws | {B(data['loses'])} Loses\s False",
+            f"Games played: ({HL(int(data['wins'] + data['draws'] + data['loses']))})\s {games}\s False",
             f"Primary disc:\s {data['primaryDisc']} {HL(fix(data['primaryDisc']))}\s True",
             f"Secondary disc:\s {data['secondaryDisc']} {HL(fix(data['secondaryDisc']))}\s True",
             f"Background:\s {data['background']} {HL(fix(data['background']))}\s False",
             f"Embed color:\s {HL(data['embedColor'])}\s False",
         ]
 
-        embed = default.Embed.custom(None, None, data['embedColor'], fields, user, f"Exp: {round(int(data['exp']))} / {round((int(data['level']) * 4.231) * 100)}", None, user.avatar_url)
+        footer = f"Exp: {round(int(data['exp']))} / {round((int(data['level']) * 4.231) * 100)}"
+
+        embed = default.Embed.custom(None, None, data['embedColor'], fields, user, footer, None, user.avatar_url)
+
         await ctx.send(embed=embed)
 
 

@@ -204,6 +204,12 @@ class Other(commands.Cog):
 
         embed = default.Embed.custom("Connect 4 - Permissions", None, default.Color.blurple, fields)
         await ctx.send(embed=embed)
+    
+
+    @commands.command(aliases=['links', 'l', 'link', 'bot_invite', 'bot', 'bot_link'], help="Displays the Bot & Support Server invite links")
+    async def invite(self, ctx):
+        embed = default.Embed.minimal("Connect 4 - Links", f"{B('[Bot](https://top.gg/bot/795099690609279006)')}\n{B('[Support Server](https://discord.gg/JgR6XywMwZ)')}", default.Color.blurple)
+        await ctx.send(embed=embed)
 
 
 def setup(client):
