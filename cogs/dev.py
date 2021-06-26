@@ -19,15 +19,25 @@ class Developer(commands.Cog):
     @commands.command()
     @commands.check(is_dev)
     async def reset_games(self, ctx):
-        games = db.games
-        db.games.clear()
+        games = db.games; db.games.clear()
         await ctx.send(f"{BOX(games)}\n{BOX(db.games)}")
-    
 
     @commands.command()
     @commands.check(is_dev)
     async def get_games(self, ctx):
         await ctx.send(BOX(db.games))
+    
+
+    @commands.command()
+    @commands.check(is_dev)
+    async def get_lobby(self, ctx):
+        await ctx.send(BOX(db.Lobby.data))
+    
+    @commands.command()
+    @commands.check(is_dev)
+    async def reset_lobby(self, ctx):
+        lobby = db.Lobby.data; db.Lobby.data.clear()
+        await ctx.send(f"{BOX(lobby)}\n{BOX(db.Lobby.data)}")
 
 
     # Python, Py command
