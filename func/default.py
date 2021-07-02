@@ -1,3 +1,16 @@
+limit = {
+    'total': 6000,
+    'title': 256,
+    'description': 2048,
+    'author': 256,
+    'footer': 2048,
+    'field': {
+        'amount': 25,
+        'name': 256,
+        'value': 1024
+    }
+}
+
 import typing
 
 def footer(seperate : typing.Optional[bool] = False):
@@ -6,7 +19,7 @@ def footer(seperate : typing.Optional[bool] = False):
     return "Connect 4 © 2021"
 
 def developer():
-    return [470866478720090114]
+    return [470866478720090114, 543937487580692493]
 
 def terminal():
     return 849531726312505355
@@ -68,8 +81,8 @@ class Embed:
         embed.set_footer(text=FOOTER)
         if (Fields):
             for FIELD in Fields:
-                Field = FIELD.split('\s ')
-                embed.add_field(name = Field[0], value=Field[1], inline=Field[2])
+                Field = FIELD.replace('\c', ',').split('\s ')
+                embed.add_field(name = Field[0], value=Field[1], inline=bool(Field[2]))
         return embed
 
     async def maintenance(ctx):
