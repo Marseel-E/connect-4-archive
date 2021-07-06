@@ -58,6 +58,14 @@ default = {
 
 games = {}
 
+ranksData = {
+    "bronze": 100,
+    "silver": 1000,
+    "gold": 2500,
+    "diamond": 5000,
+    "ruby": 10000,
+}
+
 class Lobby:
 
     data = {}
@@ -113,15 +121,8 @@ class Get:
     #     return dataList
 
     def rank(points):
-        data = {
-            "bronze": 100,
-            "silver": 1000,
-            "gold": 2500,
-            "diamond": 5000,
-            "ruby": 10000,
-        }
         rank = "Unranked"
-        for key, value in data.items():
+        for key, value in ranksData.items():
             if points >= value:
                 rank = key
             else:
@@ -244,14 +245,13 @@ class Update:
         if not (user): return False
         if (overwrite):
             try:
-                if value in ['True', 'False', True, False]:
-                    value = bool(value)
-                else:
-                    value = int(value)
+                if value in ['True', 'False', True, False, 'true', 'false']:
+                    value = bool(value); return
+                value = int(value)
             except ValueError:
                 value = str(value)
-            db.child("connect-4").child("users").child(userId).update({key: value})
-            return
+            finally:
+                db.child("connect-4").child("users").child(userId).update({key: value}); return
         db.child("connect-4").child("users").child(userId).update({key: int(user[key]) + int(value)})
     
     async def guild(guildId, key, value, overwrite : typing.Optional[bool]):

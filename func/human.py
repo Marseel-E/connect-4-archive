@@ -1,4 +1,4 @@
-import typing
+import typing, json
 
 def fix(name):
     if name.startswith('<') and name.endswith('>'):
@@ -48,3 +48,6 @@ def BOX(value, Type : typing.Optional[str] = False):
 
 def Q(value):
     return f'"{value}"'
+
+def PRETTY(value):
+    return json.dumps(value, indent=4)

@@ -346,6 +346,8 @@ class Other(commands.Cog):
         embed = default.Embed.custom("Bug report", description, default.Color.red, None, None, f"ID: {ctx.author.id}")
         channel = await self.client.fetch_channel(855139711554289674)
         await channel.send(embed=embed)
+        embed = default.Embed.success(None, f"Thanks for reaching out, Your report has been sent.\nPlease be patient while waiting for a response from our support team.\nVisit our {B(default.support_server)} for urgent help.")
+        await ctx.send(embed=embed)
     
 
     @commands.command(aliases=['perms'], help="Shows the permissions the bot requires and their current status.")
@@ -385,7 +387,7 @@ class Other(commands.Cog):
 
     @commands.command(aliases=['links', 'l', 'link', 'bot_invite', 'bot', 'bot_link'], help="Displays the Bot & Support Server invite links")
     async def invite(self, ctx):
-        embed = default.Embed.minimal("Connect 4 - Links", f"{B('[Bot](https://top.gg/bot/795099690609279006)')}\n{B('[Support Server](https://discord.gg/JgR6XywMwZ)')}", default.Color.blurple)
+        embed = default.Embed.minimal("Connect 4 - Links", f"{B(default.bot)}\n{B(default.support_server)}", default.Color.blurple)
         await ctx.send(embed=embed)
 
 

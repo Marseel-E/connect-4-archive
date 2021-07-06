@@ -418,7 +418,7 @@ class Game(commands.Cog):
 
 
     @commands.command(aliases=['inv'], help="Displays a specific member's or the user's inventory.")
-    async def inventory(self, ctx, member : typing.Optional[discord.Member] = None):
+    async def inventory(self, ctx, member : typing.Optional[discord.User] = None):
         user = ctx.author
         if (member): user = member
 
@@ -506,7 +506,7 @@ class Game(commands.Cog):
 
 
     @commands.command(aliases=['p'], help="Displays a specific member's or the user's profile.")
-    async def profile(self, ctx, member : typing.Optional[discord.Member]):
+    async def profile(self, ctx, member : typing.Optional[discord.User]):
         user = ctx.author
         if (member):
             user = member

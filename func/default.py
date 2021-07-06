@@ -11,6 +11,9 @@ limit = {
     }
 }
 
+support_server = "[Support Server](https://discord.gg/JgR6XywMwZ)"
+bot = "[Bot](https://top.gg/bot/795099690609279006)"
+
 import typing
 
 def footer(seperate : typing.Optional[bool] = False):

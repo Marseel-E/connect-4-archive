@@ -20,24 +20,31 @@ class Developer(commands.Cog):
     @commands.check(is_dev)
     async def reset_games(self, ctx):
         games = db.games; db.games.clear()
-        await ctx.send(f"{BOX(games)}\n{BOX(db.games)}")
+        await ctx.send(f"{BOX(PRETTY(games), 'JSON')}\n{BOX(PRETTY(db.games), 'JSON')}")
 
     @commands.command()
     @commands.check(is_dev)
     async def get_games(self, ctx):
-        await ctx.send(BOX(db.games))
+        await ctx.send(BOX(PRETTY(db.games), 'JSON'))
     
 
     @commands.command()
     @commands.check(is_dev)
     async def get_lobby(self, ctx):
-        await ctx.send(BOX(db.Lobby.data))
+        await ctx.send(BOX(PRETTY(db.Lobby.data), "JSON"))
     
     @commands.command()
     @commands.check(is_dev)
     async def reset_lobby(self, ctx):
         lobby = db.Lobby.data; db.Lobby.data.clear()
-        await ctx.send(f"{BOX(lobby)}\n{BOX(db.Lobby.data)}")
+        await ctx.send(f"{BOX(PRETTY(lobby), 'JSON')}\n{BOX(PRETTY(db.Lobby.data), 'JSON')}")
+    
+
+    @commands.command()
+    @commands.check(is_dev)
+    async def get_user(self, ctx, user : discord.User):
+        user = await db.Get.user(user.id)
+        await ctx.send(BOX(PRETTY(user), 'JSON'))
 
 
     # Python, Py command
@@ -235,6 +242,16 @@ class Developer(commands.Cog):
     #     else:
     #         await db.Update.blacklist(guild.id)
     #         await ctx.send(f"Blacklsited {HL(guild.name)}")
+
+
+    @commands.command()
+    async def dm(self, ctx, member : discord.User, msg, color : typing.Optional[str] = None, title : typing.Optional[str] = None):
+        if not (color): await member.send(msg); return
+        embed = default.Embed.custom(title, msg, color, None, ctx.author)
+        await member.send(embed=embed)
+        await ctx.send(embed=embed)
+
+
 
 def setup(client):
     client.add_cog(Developer(client))
