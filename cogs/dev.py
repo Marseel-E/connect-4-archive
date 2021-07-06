@@ -245,6 +245,7 @@ class Developer(commands.Cog):
 
 
     @commands.command()
+    @commands.check(is_dev)
     async def dm(self, ctx, member : discord.User, msg, color : typing.Optional[str] = None, title : typing.Optional[str] = None):
         if not (color): await member.send(msg); return
         embed = default.Embed.custom(title, msg, color, None, ctx.author)
