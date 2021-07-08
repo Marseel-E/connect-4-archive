@@ -66,6 +66,25 @@ ranksData = {
     "ruby": 10000,
 }
 
+class Developers:
+
+    def get():
+        d = db.child("connect-4").child("developers").get()
+        dv = d.val()
+        if dv is None:
+            db.child("connect-4").update({"developers": [470866478720090114]})
+            return [470866478720090114]
+        return dv
+
+    async def add(id: int):
+        d = Developers.get(); d.append(id)
+        db.child("connect-4").update({"developers": d})
+
+    async def remove(id: int):
+        d = [i for i in Developers.get() if i != id]
+        db.child("connect-4").update({"developers": d})
+
+
 class Lobby:
 
     data = {}

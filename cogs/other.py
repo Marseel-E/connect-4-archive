@@ -220,7 +220,7 @@ class Other(commands.Cog):
     async def stats(self, ctx):
         owner = await self.client.fetch_user(470866478720090114)
         users = await db.Fetch.user_ids()
-        devs = [i for i in default.developer() if i != 470866478720090114]
+        devs = [i for i in db.Developers.get() if i != 470866478720090114]
         text = ""; games= 0
 
         for user in users:
@@ -230,14 +230,14 @@ class Other(commands.Cog):
         if (devs):
             for dev in devs:
                 dev = await self.client.fetch_user(dev)
-                text += f"{dev.mention}\n"
+                text += f"{B(default.profile(dev))}\n"
         else:
             text = "None"
 
         emojis = [f"<:{emoji.name}:{emoji.id}>" for emoji in self.client.emojis]
         
         fields = [
-            f"Creator:\s {owner.mention}\s True",
+            f"Creator:\s {B(default.profile(owner))}\s True",
             f"Developer(s):\s {text}\s False",
             f"Guilds:\s {HL(len(self.client.guilds))}\s True",
             f"Users:\s {HL(len(users))}\s True",

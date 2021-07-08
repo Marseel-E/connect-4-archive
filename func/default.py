@@ -21,15 +21,15 @@ def footer(seperate : typing.Optional[bool] = False):
         return "| Connect 4 © 2021"
     return "Connect 4 © 2021"
 
-def developer():
-    return [470866478720090114, 543937487580692493]
-
 def terminal():
     return 849531726312505355
 
 import discord
 from discord.ext import commands
 from func.human import *
+
+def profile(user : discord.User):
+    return f"[{user.name}](https://discord.com/users/{user.id})"
 
 class Embed:
     def __init__(self):

@@ -7,7 +7,7 @@ from func import default
 
 
 def is_dev(ctx):
-    if ctx.author.id in default.developer(): return True
+    if ctx.author.id in db.Developers.get(): return True
     return False
 
 
@@ -244,7 +244,7 @@ class Developer(commands.Cog):
     #         await ctx.send(f"Blacklsited {HL(guild.name)}")
 
 
-    @commands.command()
+    @commands.group(invoke_without_command=True)
     @commands.check(is_dev)
     async def dm(self, ctx, member : discord.User, msg, color : typing.Optional[str] = None, title : typing.Optional[str] = None):
         if not (color): await member.send(msg); return
@@ -252,6 +252,92 @@ class Developer(commands.Cog):
         await member.send(embed=embed)
         await ctx.send(embed=embed)
 
+
+    @dm.command(aliases=['g'])
+    @commands.check(is_dev)
+    async def guild(self, ctx, guild_id, text, color : typing.Optional[str] = None, title : typing.Optional[str] = None):
+        guild = await self.client.fetch_guild(guild_id)
+        channels = await guild.fetch_channels()
+
+        DICT = {}
+        for channel in channels:
+            DICT[channel.name] = channel.id
+
+        msg = await ctx.send(BOX(PRETTY(DICT), "JSON"))
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        while True:
+
+            try: message = await self.client.wait_for('message', check=check, timeout=60)
+            except asyncio.TimeoutError: await msg.edit(content="Message timed out!", delete_after=5); break
+            else:
+                if int(message.content) not in DICT.values(): continue
+                else:
+                    channel = await self.client.fetch_channel(int(message.content))
+                    if not (color): await msg.delete(); await channel.send(text); await ctx.send(text); break; return
+                    
+                    embed = default.Embed.custom(title, text, color, None, ctx.author)
+                    await msg.delete(); await channel.send(embed=embed); await ctx.send(embed=embed); break; return
+    
+
+    @dm.command(aliases=['o'])
+    @commands.check(is_dev)
+    async def owner(self, ctx, text, color : typing.Optional[str] = None, title : typing.Optional[str] = None):
+        DICT = {}
+        for guild in self.client.guilds:
+            DICT[guild.owner.name] = guild.owner.id
+        
+        msg = await ctx.send(BOX(PRETTY(DICT), "JSON"))
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        while True:
+
+            try: message = await self.client.wait_for('message', check=check, timeout=60)
+            except asyncio.TimeoutError: await msg.edit(content="Message timed out!", delete_after=5); break
+            else:
+                if int(message.content) not in DICT.values(): continue
+                else:
+                    owner = await self.client.fetch_user(int(message.content))
+                    if not (color): await msg.delete(); await owner.send(text); await ctx.send(text); break; return
+                    
+                    embed = default.Embed.custom(title, text, color, None, ctx.author)
+                    await msg.delete(); await owner.send(embed=embed); await ctx.send(embed=embed); break; return
+
+
+    @commands.command(aliases=['gsm'])
+    @commands.check(is_dev)
+    async def global_system_message(self, ctx, msg, color : typing.Optional[str] = None, title : typing.Optional[str] = None): pass
+        # soon
+    
+
+    @commands.group(invoke_without_command=True, aliases=['devs'])
+    @commands.check(is_dev)
+    async def developers(self, ctx):
+        d = db.Developers.get(); desc = ""
+        for i in d:
+            dev = await self.client.fetch_user(i)
+            desc += f"{d.index(i)+1}. {B(default.profile(dev))}\n"
+        embed = default.Embed.minimal("Developers", desc, "5261f8")
+        await ctx.send(embed=embed)
+    
+    @developers.command(aliases=['a', '+'])
+    @commands.is_owner()
+    async def add(self, ctx, user : discord.User):
+        if ctx.author.id == user.id: await ctx.send(f"Are you a fucking dumbass?"); return
+        await db.Developers.add(user.id)
+        embed = default.Embed.success(None, f"Added {B(default.profile(user))} as a Developer.")
+        await ctx.send(embed=embed)
+    
+    @developers.command(aliases=['r', '-'])
+    @commands.is_owner()
+    async def remove(self, ctx, user : discord.User):
+        await db.Developers.remove(user.id)
+        embed = default.Embed.error("Success", f"{B(default.profile(user))} is no longer a Developer.")
+        await ctx.send(embed=embed)
 
 
 def setup(client):

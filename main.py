@@ -16,7 +16,7 @@ async def get_prefix(bot, message):
     except FileNotFoundError:
         return data['prefix']
     else:
-        if message.author.id in default.developer(): return "dev."
+        if message.author.id in db.Developers.get(): return "dev."
         return "<Encrypted>" + str(random.randint(1000000000,9999999999))
 
 # Intents
@@ -70,7 +70,7 @@ async def on_message(message):
                 embed = default.Embed.minimal(None, f"Current server prefix: {HL(prefix)}")
                 await message.channel.send(embed=embed)
             return
-        elif message.author.id in default.developer():
+        elif message.author.id in db.Developers.get():
             if not message.content.startswith(str(prefix)):
                 embed = default.Embed.minimal(None, f"Developer prefix: {HL(prefix)}")
                 await message.channel.send(embed=embed)

@@ -382,7 +382,7 @@ class Game(commands.Cog):
     
     @commands.group(invoke_without_command=True, hidden=True)
     async def lobby(self, ctx):
-        if ctx.author.id not in default.developer(): await default.Embed.maintenance(ctx); return
+        if ctx.author.id not in db.Developers.get(): await default.Embed.maintenance(ctx); return
         lData = await db.Lobby.fetch()
         fields = []
         for key, value in lData.items():
@@ -393,7 +393,7 @@ class Game(commands.Cog):
     
     @lobby.command()
     async def join(self, ctx):
-        if ctx.author.id not in default.developer(): await default.Embed.maintenance(ctx); return
+        if ctx.author.id not in db.Developers.get(): await default.Embed.maintenance(ctx); return
         lData = await db.Lobby.fetch()
         if ctx.author.id in lData.keys():
             embed = default.Embed.error("InLobby", f"{ctx.author.mention}, You're already in lobby. (In-lobby: {len(lData)})")
@@ -406,7 +406,7 @@ class Game(commands.Cog):
     
     @lobby.command()
     async def leave(self, ctx):
-        if ctx.author.id not in default.developer(): await default.Embed.maintenance(ctx); return
+        if ctx.author.id not in db.Developers.get(): await default.Embed.maintenance(ctx); return
         lData = await db.Lobby.fetch()
         if ctx.author.id not in lData.keys():
             embed = default.Embed.error("NotInLobby", f"{ctx.author.mention}, You're not in lobby.")
