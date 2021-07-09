@@ -54,6 +54,7 @@ class Handler(commands.Cog):
             T = "UnknownError"
             D = f"Something went wrong but I can't seem to figure it out. For further assistance visit our [support server](https://discord.gg/JgR6XywMwZ)"
             [await default.Support_server.terminal(self.client, default.Embed.error(T, str(error)[i:i+2000])) for i in range(0, len(str(error)), 2000)]
+            return
 
         embed = default.Embed.error(T, D)
         await ctx.send(embed=embed, delete_after=10)

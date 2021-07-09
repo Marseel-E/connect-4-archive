@@ -161,10 +161,10 @@ class Help(commands.HelpCommand):
         channel = self.get_destination()
         await channel.send(embed=embed)
     
-    async def send_error_message(self, error):
-        embed = default.Embed.error("CommandNotFound", str(error))
-        channel = self.get_destination()
-        await channel.send(embed=embed)
+    # async def send_error_message(self, error):
+    #     embed = default.Embed.error("CommandNotFound", str(error))
+    #     channel = self.get_destination()
+    #     await channel.send(embed=embed)
 
 client.help_command = Help()
 
