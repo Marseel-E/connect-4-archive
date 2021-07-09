@@ -1,5 +1,5 @@
 import discord, os, random, typing
-from discord.ext import commands
+from discord.ext import commands, tasks
 from func import database as db
 from dotenv import load_dotenv
 from func import default
@@ -63,6 +63,7 @@ async def prefix(ctx, new_prefix : typing.Optional[str]):
 async def on_message(message):
     if (message.author.bot): return
 
+
     if client.user.mentioned_in(message):
         prefix = await get_prefix(client, message)
         if not prefix.startswith('<Encrypted>'):
@@ -78,9 +79,11 @@ async def on_message(message):
         else:
             return
     
+
     users = await db.Fetch.user_ids()
     if str(message.author.id) in users:
         data = await db.Get.user(message.author.id)
+        
         if data['exp'] >= int((data['level'] * 4.231) * 100):
             await db.Update.user(message.author.id, 'exp', int(data['exp'] - int((data['level'] * 4.231) * 100)), True)
             await db.Update.user(message.author.id, 'level', 1)
@@ -89,6 +92,18 @@ async def on_message(message):
             embed = default.Embed.success(None, f"{message.author.mention}, :tada: Congratultations :tada: You've reached level {HL(data['level'] + 1)}!\n:gift: +{HL(coinsAmt)} Coins!")
             await message.channel.send(embed=embed)
             return
+        
+
+        # else:
+
+        #     if data['playing'] is True:
+        #         if len(db.games) != 0:
+        #             for game in db.games:
+        #                 if message.author.id in game['players']: break
+        #                 else: await db.Update.user(int(message.author.id), "playing", False, True); print("for loop"); break; return
+        #         else:
+        #             print(len(db.games)); await db.Update.user(int(message.author.id), "playing", False, True); print("length"); return
+
 
     await client.process_commands(message)
 

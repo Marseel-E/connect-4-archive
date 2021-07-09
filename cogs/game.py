@@ -538,15 +538,18 @@ class Game(commands.Cog):
 
     @commands.command(aliases=['htp', 'howtoplay'], name='how-to-play', help="Detailed explaination to how the game works.")
     async def how_to_play(self, ctx, page : typing.Optional[int] = None):
-        await default.Embed.maintenance(ctx); return
         if not (page): page = 0
         rs = ['⏮️', '◀️', '⏹️', '▶️', '⏭️']
 
         embeds = [
-            default.Embed.custom("How To Play", None, default.Color.blurple, None, None, None, None, None),
+            default.Embed.custom("How To Play - Basics", "Connect 4 is a definite classic. Playing against an opponent, you try to be the first to place four discs in a row on the game board. While figuring out game winning strategy can sometimes be challenge, the game is simple enough to play. If you're gearing up for your first game, you'll get the hang of it in no time, especially if you're familiar with Tic-Tac-Toe.\nConnect 4 has 7 columns and 6 rows to choose from. You can choose any of the columns, depending on your strategy. When its your turn you pick a column to drop your piece in.", default.Color.blurple, ["You want to choose each move carefully because your opponent will have a turn after you.\s Not only do they have a chance to thwart your strategy for four in row, your move can sometimes make it easier for them to get four of their checkers in a row.\s False", "If you have the first turn in the game:\s your opponent will probably be responding to your moves and attempting to block you from getting four checkers in row.\s False", "If you have the second turn of the game:\s you’ll likely be on the defensive, trying to keep your opponent from getting their checkers in row.\s False"], None, None, "https://cdn.discordapp.com/attachments/846981732246880296/862915639227973632/SmartSelect_20210709-003839_Discord-Beta.jpg", None),
+
+            default.Embed.custom("How To Play - Goal", "In order to win, a player must get four discs in their color in a row. Whoever does it first is the winner.", default.Color.blurple, ["There are three ways to get four checkers in a row:\s horizontally, vertically, and diagonally.\s False"], None, None, "https://cdn.discordapp.com/attachments/846981732246880296/862914973347872808/SmartSelect_20210709-003600_Discord-Beta.jpg", None),
+            
+            default.Embed.custom("How To Play - Hints", "If you are the first player to go in a game, your initial move can actually dictate the entire game. When you’re opening the game, the best move is to place your disc in the center column. By placing your disc in that slot, you made it much more difficult for your opponent to counter your moves so your chances of winning increase\nIf your opponent places their checker in the center column to open the game, don’t place yours in the same column so it’s on top of their checker. That doesn’t give you any strategic advantage. Instead, your best bet is to place your checker in the bottom row in one of the other columns and hope that your opponent makes a mistake.", default.Color.blurple, ["Placing the first checker in the middle column doesn’t guarantee a win.\s You still have to avoid making mistakes along the way.\s False", "If you choose a column other than the middle for your first move:\s it becomes easier for your opponent to force a tie.\s False", "If your opponent doesn’t place their checker in the center column with the first move of the game:\s that should be your initial move when it’s your turn because the space offers the best advantage in the game.\s False"], None, None, "https://cdn.discordapp.com/attachments/846981732246880296/862914134827466783/SmartSelect_20210709-002740_Discord-Beta.jpg", None),
         ]
 
-        embeds[page].set_footer(text=f"Page: {page} / {len(embeds)} {default.footer(True)}")
+        embeds[page].set_footer(text=f"Page: {page+1} / {len(embeds)} {default.footer(True)}")
         msg = await ctx.send(embed=embeds[page])
         [await msg.add_reaction(r) for r in rs]
 
@@ -565,14 +568,14 @@ class Game(commands.Cog):
                     page -= 1; pass
                 elif str(reaction.emoji) == '⏹️':
                     await msg.delete(); break
-                elif str(reaction.emoji) == '▶️' and page != len(embeds):
+                elif str(reaction.emoji) == '▶️' and page+1 != len(embeds):
                     page += 1; pass
                 elif str(reaction.emoji) == '⏭️':
                     page = len(embeds); pass
                 else:
                     continue
             
-            embeds[page].set_footer(text=f"Page: {page} / {len(embeds)} {default.footer(True)}")
+            embeds[page].set_footer(text=f"Page: {page+1} / {len(embeds)} {default.footer(True)}")
             await msg.edit(embed=embeds[page])
             await msg.clear_reactions()
             [await msg.add_reaction(r) for r in rs]
