@@ -85,22 +85,14 @@ items = {
             "icon": ":brown_circle:",
             "price": 1000,
         },
-        "kek": {
-            "icon": "<:kek:848798371170222121>",
-            "price": 20000,
-        },
         "wanky": {
             "icon": "<:wanky:848829643947507763>",
             "price": 600009,
         },
-        "aidas": {
-            "icon": "<:aidas:848829654591733830>",
-            "price": 1000000,
-        },
     },
 
     "backgrounds": {
-        "while_square": {
+        "white_square": {
             "icon": "<:while_square:844344789586804766>",
             "price": 1000,
         },
