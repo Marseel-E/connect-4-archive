@@ -29,7 +29,7 @@ intents.reactions=True
 intents.voice_states=True
 
 # Client
-client = commands.Bot(command_prefix=get_prefix, case_sensitive=True, intents=intents)
+client = slash.Bot(command_prefix=get_prefix, case_sensitive=True, intents=intents)
 
 
 # On ready event
