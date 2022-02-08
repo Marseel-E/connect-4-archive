@@ -1,4 +1,6 @@
 import discord, os, random, typing
+# import slash_util as slash
+
 from discord.ext import commands, tasks
 from func import database as db
 from dotenv import load_dotenv
