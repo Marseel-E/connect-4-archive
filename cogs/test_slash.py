@@ -1,7 +1,7 @@
 import slash_util as slash
 
 
-class Slash(slash.Cog):
+class Test_slash(slash.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -12,4 +12,4 @@ class Slash(slash.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Slash(bot))
+    bot.add_cog(Test_slash(bot))
