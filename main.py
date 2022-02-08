@@ -1,6 +1,4 @@
 import discord, os, random, typing
-import slash_util as slash
-
 from discord.ext import commands, tasks
 from func import database as db
 from dotenv import load_dotenv
@@ -29,7 +27,7 @@ intents.reactions=True
 intents.voice_states=True
 
 # Client
-client = slash.Bot(command_prefix=get_prefix, case_sensitive=True, intents=intents)
+client = commands.Bot(command_prefix=get_prefix, case_sensitive=True, intents=intents)
 
 
 # On ready event
