@@ -4,5 +4,4 @@ python-dotenv
 humanize
 dblpy
 discord-components
-slash_util
-git+https://github.com/Rapptz/discord.py 
+discord
