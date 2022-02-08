@@ -5,4 +5,4 @@ humanize
 dblpy
 discord-components
 slash_util
-git+https://github.com/Rapptz/discord.py 
+discord.py>=2.0.0
