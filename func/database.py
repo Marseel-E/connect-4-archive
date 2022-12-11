@@ -2,15 +2,7 @@ import pyrebase, random, typing
 from func.items import items
 
 
-config = {
-  "apiKey": "AIzaSyAGOCBHwfs22dA8o4RuGK4XdQHqPahzKfk",
-  "authDomain": "discord-bot-101df.firebaseapp.com",
-  "databaseURL": "https://discord-bot-101df.firebaseio.com",
-  "projectId": "discord-bot-101df",
-  "storageBucket": "discord-bot-101df.appspot.com",
-  "messagingSenderId": "436184825011",
-  "appId": "1:436184825011:web:5cadee57c3cd63336284c6"
-}
+config = {...}
 
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
